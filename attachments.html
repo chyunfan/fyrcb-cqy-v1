@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>春秋游-线路附件下载</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .header .attachment-link {
+            display: inline-block;
+            margin-top: 12px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .header .attachment-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .content {
+            padding: 25px 20px;
+        }
+        
+        .intro {
+            background: #fff7e6;
+            border-left: 4px solid #faad14;
+            padding: 12px 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .attachment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .attachment-item {
+            background: #f8f9ff;
+            border: 1px solid #e8e8ff;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+        
+        .attachment-item:hover {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+        
+        .attachment-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .attachment-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+        }
+        
+        .attachment-name {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .attachment-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+        
+        .download-btn {
+            background: #f0f0f0;
+            color: #666;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+        
+        .download-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        
+        .download-btn.active:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .back-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 24px;
+            border-radius: 25px;
+            font-size: 15px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        
+        .pending-tag {
+            background: #fff7e6;
+            color: #fa8c16;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📎 春秋游-附件下载</h1>
+            <p>点击下载各线路详细资料</p>
+            <a href="index.html" class="attachment-link">← 返回预报名</a>
+        </div>
+        
+        <div class="content">
+            <div class="intro">
+                💡 请先查看各线路附件，了解行程详情后再进行预报名。
+            </div>
+            
+            <div class="attachment-list">
+                <!-- 线路1 -->
+                <div class="attachment-item">
+                    <div class="attachment-info">
+                        <div class="attachment-icon">🚌</div>
+                        <div>
+                            <div class="attachment-name">1. 江西庐山 3天2晚</div>
+                            <div class="attachment-desc">庐山风景区详细行程</div>
+                        </div>
+                    </div>
+                    <a href="#" class="download-btn active" onclick="alert('附件待上传，请稍候'); return false;">
+                        📥 下载 <span class="pending-tag">待上传</span>
+                    </a>
+                </div>
+                
+                <!-- 线路2 -->
+                <div class="attachment-item">
+                    <div class="attachment-info">
+                        <div class="attachment-icon">🏖️</div>
+                        <div>
+                            <div class="attachment-name">2. 福建厦门 3天2晚</div>
+                            <div class="attachment-desc">鼓浪屿详细行程</div>
+                        </div>
+                    </div>
+                    <a href="#" class="download-btn active" onclick="alert('附件待上传，请稍候'); return false;">
+                        📥 下载 <span class="pending-tag">待上传</span>
+                    </a>
+                </div>
+                
+                <!-- 线路3 -->
+                <div class="attachment-item">
+                    <div class="attachment-info">
+                        <div class="attachment-icon">🌆</div>
+                        <div>
+                            <div class="attachment-name">3. 上海 2天1晚</div>
+                            <div class="attachment-desc">上海都市游详细行程</div>
+                        </div>
+                    </div>
+                    <a href="#" class="download-btn active" onclick="alert('附件待上传，请稍候'); return false;">
+                        📥 下载 <span class="pending-tag">待上传</span>
+                    </a>
+                </div>
+                
+                <!-- 线路4 -->
+                <div class="attachment-item">
+                    <div class="attachment-info">
+                        <div class="attachment-icon">🏞️</div>
+                        <div>
+                            <div class="attachment-name">4. 泰顺苍南 3天2晚</div>
+                            <div class="attachment-desc">温泉古镇详细行程</div>
+                        </div>
+                    </div>
+                    <a href="#" class="download-btn active" onclick="alert('附件待上传，请稍候'); return false;">
+                        📥 下载 <span class="pending-tag">待上传</span>
+                    </a>
+                </div>
+                
+                <!-- 线路5 -->
+                <div class="attachment-item">
+                    <div class="attachment-info">
+                        <div class="attachment-icon">🌲</div>
+                        <div>
+                            <div class="attachment-name">5. 宁海 3天2晚</div>
+                            <div class="attachment-desc">森林温泉详细行程</div>
+                        </div>
+                    </div>
+                    <a href="#" class="download-btn active" onclick="alert('附件待上传，请稍候'); return false;">
+                        📥 下载 <span class="pending-tag">待上传</span>
+                    </a>
+                </div>
+                
+                <!-- 线路6 -->
+                <div class="attachment-item">
+                    <div class="attachment-info">
+                        <div class="attachment-icon">⛰️</div>
+                        <div>
+                            <div class="attachment-name">6. 台州椒江 3天2晚</div>
+                            <div class="attachment-desc">海岛风情详细行程</div>
+                        </div>
+                    </div>
+                    <a href="#" class="download-btn active" onclick="alert('附件待上传，请稍候'); return false;">
+                        📥 下载 <span class="pending-tag">待上传</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            如有疑问请联系工会管理员
+        </div>
+    </div>
+</body>
+</html>
