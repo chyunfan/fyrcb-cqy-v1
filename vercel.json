@@ -1,11 +1,7 @@
 {
-  "build": {
-    "env": {
-      "AIRTABLE_BASE_ID": "@AIRTABLE_BASE_ID",
-      "AIRTABLE_TOKEN": "@AIRTABLE_TOKEN",
-      "WECOM_CORPID": "@WECOM_CORPID",
-      "WECOM_AGENTID": "@WECOM_AGENTID",
-      "WECOM_SECRET": "@WECOM_SECRET"
-    }
-  }
+  "version": 2,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
 }
