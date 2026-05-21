@@ -36,7 +36,7 @@ module.exports = async (req, res) => {
         const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}`;
         
         const fields = {
-            'id': parseInt(userId),
+            '柜员号': userId,
             '姓名': userName,
             '旅行线路': route,
             '月份': month,
