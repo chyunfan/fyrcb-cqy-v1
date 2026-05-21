@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>线路详情</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 顶部导航 */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+        }
+
+        .back-btn {
+            color: #fff;
+            font-size: 14px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0.9;
+        }
+
+        .page-title {
+            flex: 1;
+            text-align: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+
+        .page-counter {
+            color: rgba(255,255,255,0.7);
+            font-size: 13px;
+        }
+
+        /* 轮播容器 */
+        .carousel {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .slide {
+            min-width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+
+        .slide img {
+            max-width: 100vw;
+            max-height: 100vh;
+            object-fit: contain;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        /* 底部圆点指示器 */
+        .dots {
+            position: fixed;
+            bottom: 32px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background: #fff;
+            transform: scale(1.2);
+        }
+
+        /* 左右箭头（桌面端显示） */
+        .arrow {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .arrow:hover { background: rgba(255,255,255,0.25); }
+        .arrow-left { left: 12px; }
+        .arrow-right { right: 12px; }
+
+        @media (min-width: 768px) {
+            .arrow { display: flex; }
+        }
+
+        /* Loading 状态 */
+        .loading-text {
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+        }
+
+        /* 图片计数（圆点旁边） */
+        .page-info {
+            position: fixed;
+            bottom: 56px;
+            left: 0; right: 0;
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航 -->
+    <div class="top-bar">
+        <a href="javascript:history.back()" class="back-btn">← 返回</a>
+        <div class="page-title" id="pageTitle">线路详情</div>
+        <div class="page-counter" id="pageCounter"></div>
+    </div>
+
+    <!-- 轮播 -->
+    <div class="carousel" id="carousel">
+        <div class="carousel-track" id="track">
+            <div class="slide"><div class="loading-text">加载中...</div></div>
+        </div>
+    </div>
+
+    <!-- 左右箭头 -->
+    <button class="arrow arrow-left" id="arrowLeft">‹</button>
+    <button class="arrow arrow-right" id="arrowRight">›</button>
+
+    <!-- 页码信息 -->
+    <div class="page-info" id="pageInfo"></div>
+
+    <!-- 底部圆点 -->
+    <div class="dots" id="dots"></div>
+
+    <script>
+        // ========== 配置：线路名 → COS 图片路径前缀 ==========
+        const ROUTE_CONFIG = {
+            '1.江西庐山':  { prefix: 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/images/1.江西庐山/', filePrefix: '1', count: 3, displayName: '江西庐山 3天2晚' },
+            '2.福建厦门':  { prefix: 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/images/2.福建厦门/', filePrefix: '2', count: 3, displayName: '福建厦门 3天2晚' },
+            '3.上海':      { prefix: 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/images/3.上海/', filePrefix: '3', count: 2, displayName: '上海 2天1晚' },
+            '4.泰顺苍南':  { prefix: 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/images/4.泰顺苍南/', filePrefix: '4', count: 3, displayName: '泰顺苍南 3天2晚' },
+            '5.宁海':      { prefix: 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/images/5.宁海/', filePrefix: '5', count: 2, displayName: '宁海 3天2晚' },
+            '6.台州椒江':  { prefix: 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/images/6.台州椒江/', filePrefix: '6', count: 2, displayName: '台州椒江 3天2晚' },
+        };
+
+        // ========== 获取 URL 参数 ==========
+        function getParam(key) {
+            var params = new URLSearchParams(window.location.search);
+            return params.get(key);
+        }
+
+        var routeName = decodeURIComponent(getParam('route') || '1.江西庐山');
+        var cfg = ROUTE_CONFIG[routeName] || ROUTE_CONFIG['1.江西庐山'];
+        var totalPages = cfg.count;
+        var current = 0;
+        var isAnimating = false;
+        var startX = 0;
+        var startY = 0;
+        var deltaX = 0;
+
+        // ========== 初始化 DOM ==========
+        var track = document.getElementById('track');
+        var dotsContainer = document.getElementById('dots');
+        var titleEl = document.getElementById('pageTitle');
+        var counterEl = document.getElementById('pageCounter');
+        var pageInfoEl = document.getElementById('pageInfo');
+
+        titleEl.textContent = cfg.displayName;
+
+        // ========== 生成幻灯片 ==========
+        function buildSlides() {
+            track.innerHTML = '';
+            for (var i = 1; i <= totalPages; i++) {
+                var slide = document.createElement('div');
+                slide.className = 'slide';
+
+                var img = document.createElement('img');
+                img.src = cfg.prefix + cfg.filePrefix + '-' + i + '.jpg';
+                img.alt = cfg.displayName + ' 第' + i + '页';
+                img.draggable = false;
+                img.loading = 'lazy';
+
+                img.onload = function() {
+                    this.style.opacity = '1';
+                };
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    var err = document.createElement('div');
+                    err.className = 'loading-text';
+                    err.textContent = '图片加载失败';
+                    this.parentNode.appendChild(err);
+                };
+
+                slide.appendChild(img);
+                track.appendChild(slide);
+            }
+        }
+
+        // ========== 生成圆点 ==========
+        function buildDots() {
+            dotsContainer.innerHTML = '';
+            for (var i = 0; i < totalPages; i++) {
+                var dot = document.createElement('div');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.dataset.index = i;
+                dot.addEventListener('click', (function(idx) {
+                    return function() { goTo(idx); };
+                })(i));
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        // ========== 更新 UI ==========
+        function updateUI() {
+            // 移动 track
+            track.style.transform = 'translateX(' + (-current * window.innerWidth) + 'px)';
+
+            // 更新圆点
+            var dots = dotsContainer.querySelectorAll('.dot');
+            for (var i = 0; i < dots.length; i++) {
+                dots[i].classList.toggle('active', i === current);
+            }
+
+            // 更新计数
+            counterEl.textContent = (current + 1) + ' / ' + totalPages;
+            pageInfoEl.textContent = '第 ' + (current + 1) + ' 页 / 共 ' + totalPages + ' 页';
+        }
+
+        // ========== 跳转 ==========
+        function goTo(idx) {
+            if (idx < 0 || idx >= totalPages || idx === current) return;
+            current = idx;
+            isAnimating = true;
+            updateUI();
+            setTimeout(function() { isAnimating = false; }, 400);
+        }
+
+        function next() { goTo(current + 1); }
+        function prev() { goTo(current - 1); }
+
+        // ========== 触摸滑动（微信内完美支持）==========
+
+        function onTouchStart(e) {
+            if (isAnimating) return;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            deltaX = 0;
+        }
+
+        function onTouchMove(e) {
+            if (startX === 0) return;
+            deltaX = e.touches[0].clientX - startX;
+            // 实时跟随（可选，如不需要实时跟随可注释掉）
+            // track.style.transition = 'none';
+            // track.style.transform = 'translateX(' + (-current * window.innerWidth + deltaX) + 'px)';
+        }
+
+        function onTouchEnd(e) {
+            if (startX === 0) return;
+            var diff = deltaX;
+            startX = 0;
+            track.style.transition = '';
+
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) next();
+                else prev();
+            } else {
+                updateUI(); // 回弹
+            }
+        }
+
+        // ========== 鼠标拖拽（桌面端）==========
+        var isDragging = false;
+
+        function onMouseDown(e) {
+            if (isAnimating) return;
+            isDragging = true;
+            startX = e.clientX;
+            deltaX = 0;
+            e.preventDefault();
+        }
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            deltaX = e.clientX - startX;
+        }
+
+        function onMouseUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            if (Math.abs(deltaX) > 50) {
+                if (deltaX < 0) next();
+                else prev();
+            } else {
+                updateUI();
+            }
+            deltaX = 0;
+        }
+
+        // ========== 键盘支持 ==========
+        function onKeyDown(e) {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next();
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prev();
+        }
+
+        // ========== 绑定事件 ==========
+        var carousel = document.getElementById('carousel');
+        carousel.addEventListener('touchstart', onTouchStart, { passive: true });
+        carousel.addEventListener('touchmove', onTouchMove, { passive: true });
+        carousel.addEventListener('touchend', onTouchEnd, { passive: true });
+
+        carousel.addEventListener('mousedown', onMouseDown);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+        document.getElementById('arrowLeft').addEventListener('click', prev);
+        document.getElementById('arrowRight').addEventListener('click', next);
+
+        document.addEventListener('keydown', onKeyDown);
+
+        // ========== 窗口 resize ==========
+        window.addEventListener('resize', function() {
+            track.style.transition = 'none';
+            track.style.transform = 'translateX(' + (-current * window.innerWidth) + 'px)';
+            setTimeout(function() { track.style.transition = ''; }, 50);
+        });
+
+        // ========== 启动 ==========
+        buildSlides();
+        buildDots();
+        updateUI();
+    </script>
+</body>
+</html>
