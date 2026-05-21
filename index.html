@@ -409,11 +409,12 @@
             WECOM_CORPID: 'ww1f008e48017ee8e6',
             WECOM_AGENTID: '1000893',
             DEV_MODE: true,
-            DEV_USER_ID: 'TEST001',
-            DEV_USER_NAME: '测试员工'
+            DEV_USER_ID: 'TEST001',       // 企业微信 UserId（用于查询/存储）
+            DEV_USER_NAME: '测试员工',     // 姓名
+            DEV_TELLER_NUMBER: '8059999'  // 柜员号（用于展示）
         };
         
-        let currentUser = { userId: '', userName: '' };
+        let currentUser = { userId: '', userName: '', tellerNumber: '' };
         let existingRecordId = null;
         
         function showToast(message, type = 'info') {
@@ -449,7 +450,11 @@
             const response = await fetch('/api/wecom-auth?code=' + code);
             const data = await response.json();
             if (data.error) throw new Error(data.error);
-            return { userId: data.userId, userName: data.userName };
+            return { 
+                userId: data.userId,           // 企业微信 UserId（用于查询/存储）
+                userName: data.userName,       // 姓名
+                tellerNumber: data.tellerNumber // 柜员号（用于展示）
+            };
         }
         
         async function queryRecord(userId) {
@@ -464,12 +469,12 @@
             }
         }
         
-        async function submitRecord(userId, userName, route, month, family, remark, recordId) {
+        async function submitRecord(userId, tellerNumber, userName, route, month, family, remark, recordId) {
             try {
                 const response = await fetch('/api/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, userName, route, month, family, remark, recordId })
+                    body: JSON.stringify({ userId, tellerNumber, userName, route, month, family, remark, recordId })
                 });
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
@@ -481,11 +486,11 @@
         }
         
         async function createRecord(fields) {
-            return await submitRecord(fields['柜员号'], fields['姓名'], fields['旅行线路'], fields['月份'], fields['家庭成员人数'], fields['备注'], null);
+            return await submitRecord(fields['用户ID'], fields['柜员号'], fields['姓名'], fields['旅行线路'], fields['月份'], fields['家庭成员人数'], fields['备注'], null);
         }
         
         async function updateRecord(recordId, fields) {
-            return await submitRecord(fields['柜员号'], fields['姓名'], fields['旅行线路'], fields['月份'], fields['家庭成员人数'], fields['备注'], recordId);
+            return await submitRecord(fields['用户ID'], fields['柜员号'], fields['姓名'], fields['旅行线路'], fields['月份'], fields['家庭成员人数'], fields['备注'], recordId);
         }
         
         function fillForm(record) {
@@ -513,7 +518,8 @@
             var family = document.querySelector('input[name="family"]:checked');
             var remark = document.getElementById('remark').value.trim();
             return {
-                '柜员号': currentUser.userId,
+                '用户ID': currentUser.userId,     // 企业微信 UserId（用于查询/存储）
+                '柜员号': currentUser.tellerNumber || currentUser.userId, // 柜员号（用于展示）
                 '姓名': currentUser.userName,
                 '旅行线路': route ? route.value : '',
                 '月份': month ? month.value : '',
@@ -550,6 +556,7 @@
             try {
                 if (existingRecordId) {
                     await updateRecord(existingRecordId, {
+                        '用户ID': formData['用户ID'],
                         '柜员号': formData['柜员号'],
                         '姓名': formData['姓名'],
                         '旅行线路': formData['旅行线路'],
@@ -560,6 +567,7 @@
                     showToast('修改成功！', 'success');
                 } else {
                     await createRecord({
+                        '用户ID': formData['用户ID'],
                         '柜员号': formData['柜员号'],
                         '姓名': formData['姓名'],
                         '旅行线路': formData['旅行线路'],
@@ -588,7 +596,8 @@
             if (CONFIG.DEV_MODE) {
                 currentUser.userId = CONFIG.DEV_USER_ID;
                 currentUser.userName = CONFIG.DEV_USER_NAME;
-                document.getElementById('userId').textContent = currentUser.userId;
+                currentUser.tellerNumber = CONFIG.DEV_TELLER_NUMBER;
+                document.getElementById('userId').textContent = currentUser.tellerNumber;
                 document.getElementById('userName').textContent = currentUser.userName;
                 
                 var existingRecord = await queryRecord(currentUser.userId);
@@ -624,7 +633,8 @@
                 var userDetail = await getUserInfoByCode(code);
                 currentUser.userId = userDetail.userId;
                 currentUser.userName = userDetail.userName;
-                document.getElementById('userId').textContent = currentUser.userId;
+                currentUser.tellerNumber = userDetail.tellerNumber || userDetail.userId;
+                document.getElementById('userId').textContent = currentUser.tellerNumber;
                 document.getElementById('userName').textContent = currentUser.userName;
                 
                 var existingRecord2 = await queryRecord(currentUser.userId);

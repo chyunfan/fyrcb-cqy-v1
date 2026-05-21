@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
     
     try {
         const body = req.body;
-        const { userId, userName, route, month, family, remark, recordId } = body;
+        const { userId, tellerNumber, userName, route, month, family, remark, recordId } = body;
         
         if (!userId || !userName) {
             return res.status(400).json({ error: '缺少必填参数' });
@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
         
         const fields = {
             '用户ID': userId,
-            '柜员号': userId,  // 保留柜员号字段
+            '柜员号': tellerNumber || '',
             '姓名': userName,
             '旅行线路': route,
             '月份': month,
