@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
     try {
         const tableName = encodeURIComponent(AIRTABLE_TABLE);
         const url = 'https://api.airtable.com/v0/' + AIRTABLE_BASE_ID + '/' + tableName;
-        const filter = encodeURIComponent('{柜员号}="' + tellerNumber + '"');
+        const filter = encodeURIComponent('{柜员号}=' + parseInt(tellerNumber, 10));
         const apiUrl = url + '?filterByFormula=' + filter;
 
         const response = await fetch(apiUrl, {

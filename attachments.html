@@ -294,5 +294,27 @@
             如有疑问请联系工会管理员
         </div>
     </div>
+
+    <script>
+        // 附件下载防连点：点击后禁用3秒
+        document.querySelectorAll('.download-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                if (btn.disabled) {
+                    e.preventDefault();
+                    return;
+                }
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+                btn.textContent = '请稍候...';
+                setTimeout(function() {
+                    btn.disabled = false;
+                    btn.style.opacity = '';
+                    btn.style.pointerEvents = '';
+                    btn.innerHTML = '📥 下载';
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>
