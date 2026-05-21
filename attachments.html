@@ -138,14 +138,30 @@
             align-items: center;
             gap: 5px;
             transition: all 0.3s;
+            text-decoration: none;
         }
         
-        .download-btn.active {
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .view-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
         }
         
-        .download-btn.active:hover {
+        .view-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        
+        .pdf-btn {
+            background: #ff4d4f;
+            color: #fff;
+        }
+        
+        .pdf-btn:hover {
             opacity: 0.9;
             transform: scale(1.05);
         }
@@ -213,9 +229,14 @@
                             <div class="attachment-desc">庐山风景区详细行程</div>
                         </div>
                     </div>
-                    <a href="view.html?route=1.江西庐山" class="download-btn active">
-                        👁️ 查看
-                    </a>
+                    <div class="btn-group">
+                        <a href="view.html?route=1.江西庐山" class="download-btn view-btn">
+                            👁️ 查看图片
+                        </a>
+                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/1.江西庐山.pdf" class="download-btn pdf-btn" download>
+                            📥 下载PDF
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- 线路2 -->
@@ -227,9 +248,14 @@
                             <div class="attachment-desc">鼓浪屿详细行程</div>
                         </div>
                     </div>
-                    <a href="view.html?route=2.福建厦门" class="download-btn active">
-                        👁️ 查看
-                    </a>
+                    <div class="btn-group">
+                        <a href="view.html?route=2.福建厦门" class="download-btn view-btn">
+                            👁️ 查看图片
+                        </a>
+                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/2.福建厦门.pdf" class="download-btn pdf-btn" download>
+                            📥 下载PDF
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- 线路3 -->
@@ -241,9 +267,14 @@
                             <div class="attachment-desc">上海都市游详细行程</div>
                         </div>
                     </div>
-                    <a href="view.html?route=3.上海" class="download-btn active">
-                        👁️ 查看
-                    </a>
+                    <div class="btn-group">
+                        <a href="view.html?route=3.上海" class="download-btn view-btn">
+                            👁️ 查看图片
+                        </a>
+                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/3.上海.pdf" class="download-btn pdf-btn" download>
+                            📥 下载PDF
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- 线路4 -->
@@ -255,9 +286,14 @@
                             <div class="attachment-desc">温泉古镇详细行程</div>
                         </div>
                     </div>
-                    <a href="view.html?route=4.泰顺苍南" class="download-btn active">
-                        👁️ 查看
-                    </a>
+                    <div class="btn-group">
+                        <a href="view.html?route=4.泰顺苍南" class="download-btn view-btn">
+                            👁️ 查看图片
+                        </a>
+                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/4.泰顺苍南.pdf" class="download-btn pdf-btn" download>
+                            📥 下载PDF
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- 线路5 -->
@@ -269,9 +305,14 @@
                             <div class="attachment-desc">森林温泉详细行程</div>
                         </div>
                     </div>
-                    <a href="view.html?route=5.宁海" class="download-btn active">
-                        👁️ 查看
-                    </a>
+                    <div class="btn-group">
+                        <a href="view.html?route=5.宁海" class="download-btn view-btn">
+                            👁️ 查看图片
+                        </a>
+                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/5.宁海.pdf" class="download-btn pdf-btn" download>
+                            📥 下载PDF
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- 线路6 -->
@@ -283,9 +324,14 @@
                             <div class="attachment-desc">海岛风情详细行程</div>
                         </div>
                     </div>
-                    <a href="view.html?route=6.台州椒江" class="download-btn active">
-                        👁️ 查看
-                    </a>
+                    <div class="btn-group">
+                        <a href="view.html?route=6.台州椒江" class="download-btn view-btn">
+                            👁️ 查看图片
+                        </a>
+                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/6.台州椒江.pdf" class="download-btn pdf-btn" download>
+                            📥 下载PDF
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -296,8 +342,8 @@
     </div>
 
     <script>
-        // 附件下载防连点：点击后禁用3秒
-        document.querySelectorAll('.download-btn').forEach(function(btn) {
+        // 查看按钮防连点：点击后禁用2秒
+        document.querySelectorAll('.view-btn').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 if (btn.disabled) {
                     e.preventDefault();
@@ -306,12 +352,30 @@
                 btn.disabled = true;
                 btn.style.opacity = '0.5';
                 btn.style.pointerEvents = 'none';
-                btn.textContent = '请稍候...';
                 setTimeout(function() {
                     btn.disabled = false;
                     btn.style.opacity = '';
                     btn.style.pointerEvents = '';
-                    btn.innerHTML = '📥 下载';
+                }, 2000);
+            });
+        });
+        
+        // PDF下载按钮防连点：点击后禁用3秒
+        document.querySelectorAll('.pdf-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                if (btn.disabled) {
+                    e.preventDefault();
+                    return;
+                }
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+                btn.innerHTML = '⏳ 下载中...';
+                setTimeout(function() {
+                    btn.disabled = false;
+                    btn.style.opacity = '';
+                    btn.style.pointerEvents = '';
+                    btn.innerHTML = '📥 下载PDF';
                 }, 3000);
             });
         });
