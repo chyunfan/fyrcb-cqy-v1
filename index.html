@@ -551,6 +551,41 @@
             return !isNaN(n) && n > 8050002 && n < 8054000;
         }
 
+        // 保存状态到 sessionStorage
+        function saveTellerState() {
+            sessionStorage.setItem('cqy_teller', JSON.stringify({
+                tellerNumber: currentUser.tellerNumber,
+                userName: currentUser.userName,
+                ygxs: currentUser.ygxs
+            }));
+        }
+
+        // 从 sessionStorage 恢复状态
+        function restoreTellerState() {
+            var saved = sessionStorage.getItem('cqy_teller');
+            if (!saved) return false;
+
+            try {
+                var info = JSON.parse(saved);
+                currentUser.tellerNumber = info.tellerNumber;
+                currentUser.userName = info.userName;
+                currentUser.ygxs = info.ygxs || '';
+
+                document.getElementById('displayTellerNumber').textContent = info.tellerNumber;
+                document.getElementById('displayUserName').textContent = info.userName;
+                document.getElementById('infoCard').classList.add('show');
+                document.getElementById('formSection').classList.remove('hidden');
+                document.getElementById('tellerInput').value = info.tellerNumber;
+
+                // 重新查询报名记录
+                queryExisting();
+                return true;
+            } catch(e) {
+                sessionStorage.removeItem('cqy_teller');
+                return false;
+            }
+        }
+
         // 查询柜员号
         document.getElementById('tellerBtn').addEventListener('click', function() {
             var input = document.getElementById('tellerInput');
@@ -600,6 +635,9 @@
                     document.getElementById('displayUserName').textContent = data.userName;
                     document.getElementById('infoCard').classList.add('show');
                     successEl.textContent = '验证成功，欢迎 ' + data.userName + '！';
+
+                    // 保存状态到 sessionStorage
+                    saveTellerState();
 
                     // 显示表单区域
                     document.getElementById('formSection').classList.remove('hidden');
@@ -751,6 +789,13 @@
                 submitBtn.textContent = '提交报名';
                 showToast('提交失败：' + err.message, 'error');
             });
+        });
+        // 页面加载时恢复状态
+        restoreTellerState();
+
+        // 处理 bfcache（浏览器后退时从缓存恢复）
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) restoreTellerState();
         });
     </script>
 </body>
