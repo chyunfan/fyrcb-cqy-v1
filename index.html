@@ -353,6 +353,38 @@
         .hidden {
             display: none;
         }
+        
+        /* Loading 遮罩 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.92);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .loading-overlay.show {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid #e8e8ff;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+        
+        .loading-text {
+            margin-top: 16px;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -368,10 +400,9 @@
             <div class="teller-input-section">
                 <h3>请输入您的柜员号</h3>
                 <div class="teller-input-row">
-                    <input type="text" class="teller-input" id="tellerInput" placeholder="如：8051234" maxlength="7" inputmode="numeric">
+                    <input type="text" class="teller-input" id="tellerInput" maxlength="7" inputmode="numeric">
                     <button class="teller-btn" id="tellerBtn">确认</button>
                 </div>
-                <div class="teller-hint">柜员号范围：8050003 ~ 8053999</div>
                 <div class="teller-error" id="tellerError"></div>
                 <div class="teller-success" id="tellerSuccess"></div>
             </div>
@@ -491,10 +522,22 @@
         </div>
     </div>
     
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">加载中...</div>
+    </div>
+    
     <div id="toast" class="toast"></div>
 
     <script>
         let currentUser = { tellerNumber: '', userName: '', ygxs: '', recordId: null, allowEdit: true };
+
+        function showLoading(show, text) {
+            var overlay = document.getElementById('loadingOverlay');
+            var textEl = document.getElementById('loadingText');
+            if (text) textEl.textContent = text;
+            overlay.classList.toggle('show', show);
+        }
 
         function showToast(message, type) {
             var toast = document.getElementById('toast');
@@ -531,14 +574,15 @@
                 return;
             }
 
+            // 显示 loading
+            showLoading(true, '正在查询柜员信息...');
             document.getElementById('tellerBtn').disabled = true;
-            document.getElementById('tellerBtn').textContent = '查询中...';
 
             fetch('/api/lookup-teller?tellerNumber=' + encodeURIComponent(num))
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
+                    showLoading(false);
                     document.getElementById('tellerBtn').disabled = false;
-                    document.getElementById('tellerBtn').textContent = '确认';
 
                     if (data.error) {
                         errorEl.textContent = data.error;
@@ -560,12 +604,22 @@
                     // 显示表单区域
                     document.getElementById('formSection').classList.remove('hidden');
 
-                    // 查询是否已报名
-                    queryExisting();
+                    // 处理已存在的报名记录（新 API 已合并返回）
+                    if (data.existingRecord) {
+                        currentUser.recordId = data.existingRecord.id;
+                        if (!data.existingRecord.allowEdit) {
+                            currentUser.allowEdit = false;
+                            showToast('您已报名，且不允许修改', 'error');
+                            setTimeout(function() { disableForm(); }, 500);
+                        } else {
+                            fillForm(data.existingRecord.fields);
+                            showToast('已加载您的报名信息，可修改后重新提交', 'success');
+                        }
+                    }
                 })
                 .catch(function(err) {
+                    showLoading(false);
                     document.getElementById('tellerBtn').disabled = false;
-                    document.getElementById('tellerBtn').textContent = '确认';
                     errorEl.textContent = '查询失败：' + err.message;
                 });
         });
