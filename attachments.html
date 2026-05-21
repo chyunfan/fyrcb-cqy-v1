@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>春秋游-线路附件下载</title>
+    <title>春秋游-线路附件</title>
     <style>
         * {
             margin: 0;
@@ -84,10 +84,12 @@
             background: #f8f9ff;
             border: 1px solid #e8e8ff;
             border-radius: 12px;
-            padding: 16px;
-            display: flex;
+            padding: 14px 16px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
             align-items: center;
-            justify-content: space-between;
+            min-height: 72px;
             transition: all 0.3s;
         }
         
@@ -100,71 +102,66 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            overflow: hidden;
         }
         
         .attachment-icon {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 20px;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        
+        .attachment-text {
+            overflow: hidden;
         }
         
         .attachment-name {
             font-size: 15px;
-            color: #333;
+            color: #667eea;
             font-weight: 500;
             white-space: nowrap;
+            text-decoration: underline;
+            text-decoration-color: #667eea;
+            text-underline-offset: 3px;
+            cursor: pointer;
+        }
+        
+        .attachment-name:hover {
+            color: #764ba2;
+            text-decoration-color: #764ba2;
         }
         
         .attachment-desc {
             font-size: 12px;
             color: #999;
-            margin-top: 2px;
+            margin-top: 3px;
             white-space: nowrap;
-        }
-        
-        .download-btn {
-            background: #f0f0f0;
-            color: #666;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
         }
         
         .view-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s;
+            text-decoration: none;
+            flex-shrink: 0;
         }
         
         .view-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.05);
-        }
-        
-        .pdf-btn {
-            background: #ff4d4f;
-            color: #fff;
-        }
-        
-        .pdf-btn:hover {
             opacity: 0.9;
             transform: scale(1.05);
         }
@@ -176,50 +173,19 @@
             font-size: 12px;
             border-top: 1px solid #f0f0f0;
         }
-        
-        .back-btn {
-            display: block;
-            width: 100%;
-            max-width: 300px;
-            margin: 20px auto 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            border: none;
-            padding: 14px 24px;
-            border-radius: 25px;
-            font-size: 15px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .back-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
-        }
-        
-        .pending-tag {
-            background: #fff7e6;
-            color: #fa8c16;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 8px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📎 春秋游-附件下载</h1>
-            <p>点击下载各线路详细资料</p>
+            <h1>📎 春秋游-线路附件</h1>
+            <p>点击线路名称下载PDF，点击查看浏览图片</p>
             <a href="index.html" class="attachment-link">← 返回预报名</a>
         </div>
         
         <div class="content">
             <div class="intro">
-                💡 请先查看各线路附件，了解行程详情后再进行预报名。
+                💡 点击线路名称下载PDF资料，或点击查看浏览图片详情。
             </div>
             
             <div class="attachment-list">
@@ -227,114 +193,96 @@
                 <div class="attachment-item">
                     <div class="attachment-info">
                         <div class="attachment-icon">🚌</div>
-                        <div>
-                            <div class="attachment-name">1. 江西庐山 3天2晚</div>
+                        <div class="attachment-text">
+                            <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/1.江西庐山.pdf" class="attachment-name" download title="点击下载PDF">
+                                1. 江西庐山 3天2晚
+                            </a>
                             <div class="attachment-desc">庐山风景区详细行程</div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="view.html?route=1.江西庐山" class="download-btn view-btn">
-                            👁️ 查看
-                        </a>
-                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/1.江西庐山.pdf" class="download-btn pdf-btn" download>
-                            📥 下载
-                        </a>
-                    </div>
+                    <a href="view.html?route=1.江西庐山" class="view-btn">
+                        👁️ 查看
+                    </a>
                 </div>
                 
                 <!-- 线路2 -->
                 <div class="attachment-item">
                     <div class="attachment-info">
                         <div class="attachment-icon">🏖️</div>
-                        <div>
-                            <div class="attachment-name">2. 福建厦门 3天2晚</div>
+                        <div class="attachment-text">
+                            <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/2.福建厦门.pdf" class="attachment-name" download title="点击下载PDF">
+                                2. 福建厦门 3天2晚
+                            </a>
                             <div class="attachment-desc">鼓浪屿详细行程</div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="view.html?route=2.福建厦门" class="download-btn view-btn">
-                            👁️ 查看
-                        </a>
-                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/2.福建厦门.pdf" class="download-btn pdf-btn" download>
-                            📥 下载
-                        </a>
-                    </div>
+                    <a href="view.html?route=2.福建厦门" class="view-btn">
+                        👁️ 查看
+                    </a>
                 </div>
                 
                 <!-- 线路3 -->
                 <div class="attachment-item">
                     <div class="attachment-info">
                         <div class="attachment-icon">🌆</div>
-                        <div>
-                            <div class="attachment-name">3. 上海 2天1晚</div>
+                        <div class="attachment-text">
+                            <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/3.上海.pdf" class="attachment-name" download title="点击下载PDF">
+                                3. 上海 2天1晚
+                            </a>
                             <div class="attachment-desc">上海都市游详细行程</div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="view.html?route=3.上海" class="download-btn view-btn">
-                            👁️ 查看
-                        </a>
-                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/3.上海.pdf" class="download-btn pdf-btn" download>
-                            📥 下载
-                        </a>
-                    </div>
+                    <a href="view.html?route=3.上海" class="view-btn">
+                        👁️ 查看
+                    </a>
                 </div>
                 
                 <!-- 线路4 -->
                 <div class="attachment-item">
                     <div class="attachment-info">
                         <div class="attachment-icon">🏞️</div>
-                        <div>
-                            <div class="attachment-name">4. 泰顺苍南 3天2晚</div>
+                        <div class="attachment-text">
+                            <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/4.泰顺苍南.pdf" class="attachment-name" download title="点击下载PDF">
+                                4. 泰顺苍南 3天2晚
+                            </a>
                             <div class="attachment-desc">温泉古镇详细行程</div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="view.html?route=4.泰顺苍南" class="download-btn view-btn">
-                            👁️ 查看
-                        </a>
-                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/4.泰顺苍南.pdf" class="download-btn pdf-btn" download>
-                            📥 下载
-                        </a>
-                    </div>
+                    <a href="view.html?route=4.泰顺苍南" class="view-btn">
+                        👁️ 查看
+                    </a>
                 </div>
                 
                 <!-- 线路5 -->
                 <div class="attachment-item">
                     <div class="attachment-info">
                         <div class="attachment-icon">🌲</div>
-                        <div>
-                            <div class="attachment-name">5. 宁海 3天2晚</div>
+                        <div class="attachment-text">
+                            <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/5.宁海.pdf" class="attachment-name" download title="点击下载PDF">
+                                5. 宁海 3天2晚
+                            </a>
                             <div class="attachment-desc">森林温泉详细行程</div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="view.html?route=5.宁海" class="download-btn view-btn">
-                            👁️ 查看
-                        </a>
-                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/5.宁海.pdf" class="download-btn pdf-btn" download>
-                            📥 下载
-                        </a>
-                    </div>
+                    <a href="view.html?route=5.宁海" class="view-btn">
+                        👁️ 查看
+                    </a>
                 </div>
                 
                 <!-- 线路6 -->
                 <div class="attachment-item">
                     <div class="attachment-info">
                         <div class="attachment-icon">⛰️</div>
-                        <div>
-                            <div class="attachment-name">6. 台州椒江 3天2晚</div>
+                        <div class="attachment-text">
+                            <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/6.台州椒江.pdf" class="attachment-name" download title="点击下载PDF">
+                                6. 台州椒江 3天2晚
+                            </a>
                             <div class="attachment-desc">海岛风情详细行程</div>
                         </div>
                     </div>
-                    <div class="btn-group">
-                        <a href="view.html?route=6.台州椒江" class="download-btn view-btn">
-                            👁️ 查看
-                        </a>
-                        <a href="https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/pdf/6.台州椒江.pdf" class="download-btn pdf-btn" download>
-                            📥 下载
-                        </a>
-                    </div>
+                    <a href="view.html?route=6.台州椒江" class="view-btn">
+                        👁️ 查看
+                    </a>
                 </div>
             </div>
         </div>
@@ -345,7 +293,7 @@
     </div>
 
     <script>
-        // 查看按钮防连点：点击后禁用2秒
+        // 查看按钮防连点
         document.querySelectorAll('.view-btn').forEach(function(btn) {
             btn.addEventListener('click', function(e) {
                 if (btn.disabled) {
@@ -360,26 +308,6 @@
                     btn.style.opacity = '';
                     btn.style.pointerEvents = '';
                 }, 2000);
-            });
-        });
-        
-        // PDF下载按钮防连点：点击后禁用3秒
-        document.querySelectorAll('.pdf-btn').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                if (btn.disabled) {
-                    e.preventDefault();
-                    return;
-                }
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.pointerEvents = 'none';
-                btn.innerHTML = '⏳ 下载中...';
-                setTimeout(function() {
-                    btn.disabled = false;
-                    btn.style.opacity = '';
-                    btn.style.pointerEvents = '';
-                    btn.innerHTML = '📥 下载';
-                }, 3000);
             });
         });
     </script>
