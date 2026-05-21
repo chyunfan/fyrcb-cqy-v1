@@ -64,12 +64,96 @@
             padding: 25px 20px;
         }
         
+        .teller-input-section {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .teller-input-section h3 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        
+        .teller-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .teller-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 1px;
+            transition: border-color 0.3s;
+        }
+        
+        .teller-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .teller-input.error {
+            border-color: #ff4d4f;
+        }
+        
+        .teller-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+        }
+        
+        .teller-btn:hover {
+            background: #5568d3;
+        }
+        
+        .teller-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .teller-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+        
+        .teller-error {
+            font-size: 12px;
+            color: #ff4d4f;
+            margin-top: 8px;
+        }
+        
+        .teller-success {
+            font-size: 12px;
+            color: #52c41a;
+            margin-top: 8px;
+        }
+        
         .info-card {
             background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 20px;
             border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .info-card.show {
+            display: block;
         }
         
         .info-row {
@@ -269,232 +353,263 @@
         .hidden {
             display: none;
         }
-        
-        .user-info-loading {
-            text-align: center;
-            padding: 30px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚌 春秋游-预报名</h1>
-            <p>请选择您的出行计划</p>
+            <p>请先输入柜员号，再选择出行计划</p>
             <a href="attachments.html" class="attachment-link">📎 查看各线路附件</a>
         </div>
         
-        <div id="loading" class="loading show">
-            <div class="spinner"></div>
-            <p id="loadingText">正在获取用户信息...</p>
-        </div>
-        
-        <div id="formContainer" class="form-body hidden">
-            <div class="info-card">
+        <!-- 柜员号输入区域 -->
+        <div class="form-body">
+            <div class="teller-input-section">
+                <h3>请输入您的柜员号</h3>
+                <div class="teller-input-row">
+                    <input type="text" class="teller-input" id="tellerInput" placeholder="如：8051234" maxlength="7" inputmode="numeric">
+                    <button class="teller-btn" id="tellerBtn">确认</button>
+                </div>
+                <div class="teller-hint">柜员号范围：8050003 ~ 8053999</div>
+                <div class="teller-error" id="tellerError"></div>
+                <div class="teller-success" id="tellerSuccess"></div>
+            </div>
+            
+            <!-- 用户信息卡片（查询成功后显示） -->
+            <div class="info-card" id="infoCard">
                 <div class="info-row">
                     <span class="info-label">柜员号</span>
-                    <span class="info-value" id="userId">-</span>
+                    <span class="info-value" id="displayTellerNumber">-</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">姓名</span>
-                    <span class="info-value" id="userName">-</span>
+                    <span class="info-value" id="displayUserName">-</span>
                 </div>
             </div>
             
-            <form id="travelForm">
-                <div class="form-group">
-                    <label class="form-label">旅行线路 <span class="required">*</span></label>
-                    <div class="radio-group" id="routeGroup">
-                        <div class="radio-item">
-                            <input type="radio" name="route" id="route1" value="1.江西庐山3天2晚。">
-                            <label for="route1">江西庐山<br><small>3天2晚</small></label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="route" id="route2" value="2.福建厦门3天2晚。">
-                            <label for="route2">福建厦门<br><small>3天2晚</small></label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="route" id="route3" value="3.上海2天1晚。">
-                            <label for="route3">上海<br><small>2天1晚</small></label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="route" id="route4" value="4.泰顺苍南3天2晚。">
-                            <label for="route4">泰顺苍南<br><small>3天2晚</small></label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="route" id="route5" value="5.宁海3天2晚。">
-                            <label for="route5">宁海<br><small>3天2晚</small></label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="route" id="route6" value="6.台州椒江3天2晚">
-                            <label for="route6">台州椒江<br><small>3天2晚</small></label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">预计月份 <span class="required">*</span></label>
-                    <div class="radio-group" id="monthGroup">
-                        <div class="radio-item select-item">
-                            <input type="radio" name="month" id="month6" value="6月">
-                            <label for="month6">6月</label>
-                        </div>
-                        <div class="radio-item select-item">
-                            <input type="radio" name="month" id="month7" value="7月">
-                            <label for="month7">7月</label>
-                        </div>
-                        <div class="radio-item select-item">
-                            <input type="radio" name="month" id="month8" value="8月">
-                            <label for="month8">8月</label>
-                        </div>
-                        <div class="radio-item select-item">
-                            <input type="radio" name="month" id="month9" value="9月">
-                            <label for="month9">9月</label>
-                        </div>
-                        <div class="radio-item select-item">
-                            <input type="radio" name="month" id="month10" value="10月">
-                            <label for="month10">10月</label>
-                        </div>
-                        <div class="radio-item select-item">
-                            <input type="radio" name="month" id="month11" value="11月">
-                            <label for="month11">11月</label>
+            <!-- 表单区域（验证成功后显示） -->
+            <div id="formSection" class="hidden">
+                <form id="travelForm">
+                    <div class="form-group">
+                        <label class="form-label">旅行线路 <span class="required">*</span></label>
+                        <div class="radio-group" id="routeGroup">
+                            <div class="radio-item">
+                                <input type="radio" name="route" id="route1" value="1.江西庐山3天2晚。">
+                                <label for="route1">江西庐山<br><small>3天2晚</small></label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="route" id="route2" value="2.福建厦门3天2晚。">
+                                <label for="route2">福建厦门<br><small>3天2晚</small></label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="route" id="route3" value="3.上海2天1晚。">
+                                <label for="route3">上海<br><small>2天1晚</small></label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="route" id="route4" value="4.泰顺苍南3天2晚。">
+                                <label for="route4">泰顺苍南<br><small>3天2晚</small></label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="route" id="route5" value="5.宁海3天2晚。">
+                                <label for="route5">宁海<br><small>3天2晚</small></label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="route" id="route6" value="6.台州椒江3天2晚">
+                                <label for="route6">台州椒江<br><small>3天2晚</small></label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">家属随行人数（不含本人）<span class="required">*</span></label>
-                    <div class="radio-group">
-                        <div class="radio-item">
-                            <input type="radio" name="family" id="family0" value="0" checked>
-                            <label for="family0">0人</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="family" id="family1" value="1">
-                            <label for="family1">1人</label>
-                        </div>
-                        <div class="radio-item">
-                            <input type="radio" name="family" id="family2" value="2">
-                            <label for="family2">2人</label>
+                    
+                    <div class="form-group">
+                        <label class="form-label">预计月份 <span class="required">*</span></label>
+                        <div class="radio-group" id="monthGroup">
+                            <div class="radio-item select-item">
+                                <input type="radio" name="month" id="month6" value="6月">
+                                <label for="month6">6月</label>
+                            </div>
+                            <div class="radio-item select-item">
+                                <input type="radio" name="month" id="month7" value="7月">
+                                <label for="month7">7月</label>
+                            </div>
+                            <div class="radio-item select-item">
+                                <input type="radio" name="month" id="month8" value="8月">
+                                <label for="month8">8月</label>
+                            </div>
+                            <div class="radio-item select-item">
+                                <input type="radio" name="month" id="month9" value="9月">
+                                <label for="month9">9月</label>
+                            </div>
+                            <div class="radio-item select-item">
+                                <input type="radio" name="month" id="month10" value="10月">
+                                <label for="month10">10月</label>
+                            </div>
+                            <div class="radio-item select-item">
+                                <input type="radio" name="month" id="month11" value="11月">
+                                <label for="month11">11月</label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="notice-box">
-                    <div class="notice-title">⚠️ 重要须知</div>
-                    <div class="notice-content">
-                        • 每月提前两周安排一个出行时段<br>
-                        • 每人限出行一次<br>
-                        • 若个人出行时间、线路有调整，请提前15天重新填写，逾期不予调整
+                    
+                    <div class="form-group">
+                        <label class="form-label">家属随行人数（不含本人）<span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" name="family" id="family0" value="0" checked>
+                                <label for="family0">0人</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="family" id="family1" value="1">
+                                <label for="family1">1人</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="family" id="family2" value="2">
+                                <label for="family2">2人</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">其他备注</label>
-                    <textarea class="textarea" id="remark" placeholder="如有其他要求请在此说明..."></textarea>
-                </div>
-                
-                <button type="submit" class="submit-btn" id="submitBtn">
-                    提交报名
-                </button>
-            </form>
+                    
+                    <div class="notice-box">
+                        <div class="notice-title">⚠️ 重要须知</div>
+                        <div class="notice-content">
+                            • 每月提前两周安排一个出行时段<br>
+                            • 每人限出行一次<br>
+                            • 若个人出行时间、线路有调整，请提前15天重新填写，逾期不予调整
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">其他备注</label>
+                        <textarea class="textarea" id="remark" placeholder="如有其他要求请在此说明..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        提交报名
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
     
     <div id="toast" class="toast"></div>
 
     <script>
-        const CONFIG = {
-            WECOM_CORPID: 'ww1f008e48017ee8e6',
-            WECOM_AGENTID: '1000893',
-            DEV_MODE: false,
-            DEV_USER_ID: 'TEST001',       // 企业微信 UserId（用于查询/存储）
-            DEV_USER_NAME: '测试员工',     // 姓名
-            DEV_TELLER_NUMBER: '8059999'  // 柜员号（用于展示）
-        };
-        
-        let currentUser = { userId: '', userName: '', tellerNumber: '' };
-        let existingRecordId = null;
-        
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
+        let currentUser = { tellerNumber: '', userName: '', ygxs: '', recordId: null, allowEdit: true };
+
+        function showToast(message, type) {
+            var toast = document.getElementById('toast');
             toast.textContent = message;
-            toast.className = 'toast ' + type + ' show';
-            setTimeout(function() {
-                toast.classList.remove('show');
-            }, 3000);
+            toast.className = 'toast ' + (type || 'info') + ' show';
+            setTimeout(function() { toast.classList.remove('show'); }, 3000);
         }
-        
-        function showLoading(show, text) {
-            text = text || '加载中...';
-            document.getElementById('loading').classList.toggle('show', show);
-            document.getElementById('loadingText').textContent = text;
-            document.getElementById('formContainer').classList.toggle('hidden', show);
+
+        function validateTellerNumber(num) {
+            var n = parseInt(num, 10);
+            return !isNaN(n) && n > 8050002 && n < 8054000;
         }
-        
-        function getUrlParam(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
-        
-        function redirectToWecomAuth() {
-            const redirectUri = encodeURIComponent(window.location.href.split('?')[0]);
-            const state = Math.random().toString(36).substr(2, 15);
-            sessionStorage.setItem('wecom_state', state);
-            const authUrl = 'https://open.work.weixin.qq.com/wwopen/sso/qrConnect?appid=' + CONFIG.WECOM_CORPID + '&agentid=' + CONFIG.WECOM_AGENTID + '&redirect_uri=' + redirectUri + '&state=' + state;
-            window.location.href = authUrl;
-        }
-        
-        async function getUserInfoByCode(code) {
-            const response = await fetch('/api/wecom-auth?code=' + code);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
-            return { 
-                userId: data.userId,           // 企业微信 UserId（用于查询/存储）
-                userName: data.userName,       // 姓名
-                tellerNumber: data.tellerNumber // 柜员号（用于展示）
-            };
-        }
-        
-        async function queryRecord(userId) {
-            try {
-                const response = await fetch('/api/query?userId=' + userId);
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                return data;
-            } catch (error) {
-                console.error('查询记录失败:', error);
-                return null;
+
+        // 查询柜员号
+        document.getElementById('tellerBtn').addEventListener('click', function() {
+            var input = document.getElementById('tellerInput');
+            var num = input.value.trim();
+            var errorEl = document.getElementById('tellerError');
+            var successEl = document.getElementById('tellerSuccess');
+
+            errorEl.textContent = '';
+            successEl.textContent = '';
+            input.classList.remove('error');
+
+            if (!num) {
+                errorEl.textContent = '请输入柜员号';
+                input.classList.add('error');
+                return;
             }
-        }
-        
-        async function submitRecord(userId, tellerNumber, userName, route, month, family, remark, recordId) {
-            try {
-                const response = await fetch('/api/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, tellerNumber, userName, route, month, family, remark, recordId })
+
+            if (!validateTellerNumber(num)) {
+                errorEl.textContent = '柜员号格式不正确，范围：8050003 ~ 8053999';
+                input.classList.add('error');
+                return;
+            }
+
+            document.getElementById('tellerBtn').disabled = true;
+            document.getElementById('tellerBtn').textContent = '查询中...';
+
+            fetch('/api/lookup-teller?tellerNumber=' + encodeURIComponent(num))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    document.getElementById('tellerBtn').disabled = false;
+                    document.getElementById('tellerBtn').textContent = '确认';
+
+                    if (data.error) {
+                        errorEl.textContent = data.error;
+                        input.classList.add('error');
+                        return;
+                    }
+
+                    // 保存用户信息
+                    currentUser.tellerNumber = data.tellerNumber;
+                    currentUser.userName = data.userName;
+                    currentUser.ygxs = data.ygxs || '';
+
+                    // 显示用户信息
+                    document.getElementById('displayTellerNumber').textContent = data.tellerNumber;
+                    document.getElementById('displayUserName').textContent = data.userName;
+                    document.getElementById('infoCard').classList.add('show');
+                    successEl.textContent = '验证成功，欢迎 ' + data.userName + '！';
+
+                    // 显示表单区域
+                    document.getElementById('formSection').classList.remove('hidden');
+
+                    // 查询是否已报名
+                    queryExisting();
+                })
+                .catch(function(err) {
+                    document.getElementById('tellerBtn').disabled = false;
+                    document.getElementById('tellerBtn').textContent = '确认';
+                    errorEl.textContent = '查询失败：' + err.message;
                 });
-                const data = await response.json();
-                if (data.error) throw new Error(data.error);
-                return data;
-            } catch (error) {
-                console.error('提交记录失败:', error);
-                throw error;
+        });
+
+        // 回车触发查询
+        document.getElementById('tellerInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('tellerBtn').click();
             }
+        });
+
+        // 查询是否已有报名记录
+        function queryExisting() {
+            fetch('/api/query?tellerNumber=' + encodeURIComponent(currentUser.tellerNumber))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) {
+                        console.error('查询记录失败:', data.error);
+                        return;
+                    }
+                    if (data.records && data.records.length > 0) {
+                        var record = data.records[0];
+                        currentUser.recordId = record.id;
+                        // 检查是否允许修改
+                        if (record.fields['是否允许修改'] === '否') {
+                            currentUser.allowEdit = false;
+                            showToast('您已报名，且不允许修改', 'error');
+                            setTimeout(function() {
+                                disableForm();
+                            }, 500);
+                        } else {
+                            // 回显已填数据
+                            fillForm(record.fields);
+                            showToast('已加载您的报名信息，可修改后重新提交', 'success');
+                        }
+                    }
+                })
+                .catch(function(err) {
+                    console.error('查询记录失败:', err);
+                });
         }
-        
-        async function createRecord(fields) {
-            return await submitRecord(fields['用户ID'], fields['柜员号'], fields['姓名'], fields['旅行线路'], fields['月份'], fields['家庭成员人数'], fields['备注'], null);
-        }
-        
-        async function updateRecord(recordId, fields) {
-            return await submitRecord(fields['用户ID'], fields['柜员号'], fields['姓名'], fields['旅行线路'], fields['月份'], fields['家庭成员人数'], fields['备注'], recordId);
-        }
-        
-        function fillForm(record) {
-            const fields = record.fields;
+
+        function fillForm(fields) {
             if (fields['旅行线路']) {
                 var routeInput = document.querySelector('input[name="route"][value="' + fields['旅行线路'] + '"]');
                 if (routeInput) routeInput.checked = true;
@@ -504,154 +619,85 @@
                 if (monthInput) monthInput.checked = true;
             }
             if (fields['家庭成员人数'] !== undefined) {
-                var familyInput = document.querySelector('input[name="family"][value="' + fields['家庭成员人数'] + '"]');
+                var val = String(fields['家庭成员人数']);
+                var familyInput = document.querySelector('input[name="family"][value="' + val + '"]');
                 if (familyInput) familyInput.checked = true;
             }
             if (fields['备注']) {
                 document.getElementById('remark').value = fields['备注'];
             }
         }
-        
-        function getFormData() {
+
+        function disableForm() {
+            var elements = document.querySelectorAll('#travelForm input, #travelForm textarea, #travelForm button');
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].disabled = true;
+            }
+        }
+
+        // 提交表单
+        document.getElementById('travelForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!currentUser.allowEdit) {
+                showToast('当前不允许修改报名信息', 'error');
+                return;
+            }
+
             var route = document.querySelector('input[name="route"]:checked');
             var month = document.querySelector('input[name="month"]:checked');
             var family = document.querySelector('input[name="family"]:checked');
             var remark = document.getElementById('remark').value.trim();
-            return {
-                '用户ID': currentUser.userId,     // 企业微信 UserId（用于查询/存储）
-                '柜员号': currentUser.tellerNumber || currentUser.userId, // 柜员号（用于展示）
-                '姓名': currentUser.userName,
-                '旅行线路': route ? route.value : '',
-                '月份': month ? month.value : '',
-                '家庭成员人数': family ? parseInt(family.value) : 0,
-                '备注': remark
-            };
-        }
-        
-        function validateForm(data) {
-            if (!data['旅行线路']) {
-                showToast('请选择旅行线路', 'error');
-                return false;
-            }
-            if (!data['月份']) {
-                showToast('请选择月份', 'error');
-                return false;
-            }
-            if (!document.querySelector('input[name="family"]:checked')) {
-                showToast('请选择家属随行人数', 'error');
-                return false;
-            }
-            return true;
-        }
-        
-        async function handleSubmit(e) {
-            e.preventDefault();
-            var formData = getFormData();
-            if (!validateForm(formData)) return;
-            
+
+            if (!route) { showToast('请选择旅行线路', 'error'); return; }
+            if (!month) { showToast('请选择月份', 'error'); return; }
+            if (!family) { showToast('请选择家属随行人数', 'error'); return; }
+
             var submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = '提交中...';
-            
-            try {
-                if (existingRecordId) {
-                    await updateRecord(existingRecordId, {
-                        '用户ID': formData['用户ID'],
-                        '柜员号': formData['柜员号'],
-                        '姓名': formData['姓名'],
-                        '旅行线路': formData['旅行线路'],
-                        '月份': formData['月份'],
-                        '家庭成员人数': formData['家庭成员人数'],
-                        '备注': formData['备注']
-                    });
-                    showToast('修改成功！', 'success');
-                } else {
-                    await createRecord({
-                        '用户ID': formData['用户ID'],
-                        '柜员号': formData['柜员号'],
-                        '姓名': formData['姓名'],
-                        '旅行线路': formData['旅行线路'],
-                        '月份': formData['月份'],
-                        '家庭成员人数': formData['家庭成员人数'],
-                        '备注': formData['备注']
-                    });
-                    showToast('提交成功！', 'success');
-                    existingRecordId = 'submitted';
-                }
-                
-                setTimeout(function() {
-                    var elements = document.querySelectorAll('input, textarea, button');
-                    for (var i = 0; i < elements.length; i++) {
-                        elements[i].disabled = true;
-                    }
-                }, 500);
-            } catch (error) {
-                showToast('提交失败: ' + error.message, 'error');
+
+            var payload = {
+                tellerNumber: currentUser.tellerNumber,
+                userName: currentUser.userName,
+                ygxs: currentUser.ygxs,
+                route: route.value,
+                month: month.value,
+                family: parseInt(family.value),
+                remark: remark,
+                recordId: currentUser.recordId
+            };
+
+            fetch('/api/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '提交报名';
-            }
-        }
-        
-        async function init() {
-            if (CONFIG.DEV_MODE) {
-                currentUser.userId = CONFIG.DEV_USER_ID;
-                currentUser.userName = CONFIG.DEV_USER_NAME;
-                currentUser.tellerNumber = CONFIG.DEV_TELLER_NUMBER;
-                document.getElementById('userId').textContent = currentUser.tellerNumber;
-                document.getElementById('userName').textContent = currentUser.userName;
-                
-                var existingRecord = await queryRecord(currentUser.userId);
-                if (existingRecord) {
-                    existingRecordId = existingRecord.id;
-                    fillForm(existingRecord);
-                    showToast('已加载您的报名信息（开发模式）', 'success');
+
+                if (data.error) {
+                    showToast('提交失败：' + data.error, 'error');
+                    return;
+                }
+
+                if (currentUser.recordId) {
+                    showToast('修改成功！', 'success');
                 } else {
-                    showToast('开发模式：已使用测试账号', 'success');
+                    showToast('提交成功！', 'success');
+                    currentUser.recordId = 'submitted';
                 }
-                showLoading(false);
-                return;
-            }
-            
-            var code = getUrlParam('code');
-            var state = getUrlParam('state');
-            var savedState = sessionStorage.getItem('wecom_state');
-            
-            if (state && state !== savedState) {
-                showLoading(false);
-                showToast('验证失败，请重试', 'error');
-                return;
-            }
-            
-            if (!code) {
-                showLoading(false);
-                document.getElementById('loadingText').textContent = '即将跳转到企业微信授权...';
-                setTimeout(function() { redirectToWecomAuth(); }, 1500);
-                return;
-            }
-            
-            try {
-                var userDetail = await getUserInfoByCode(code);
-                currentUser.userId = userDetail.userId;
-                currentUser.userName = userDetail.userName;
-                currentUser.tellerNumber = userDetail.tellerNumber || userDetail.userId;
-                document.getElementById('userId').textContent = currentUser.tellerNumber;
-                document.getElementById('userName').textContent = currentUser.userName;
-                
-                var existingRecord2 = await queryRecord(currentUser.userId);
-                if (existingRecord2) {
-                    existingRecordId = existingRecord2.id;
-                    fillForm(existingRecord2);
-                    showToast('已加载您的报名信息', 'success');
-                }
-                showLoading(false);
-            } catch (error) {
-                showLoading(false);
-                showToast('获取用户信息失败: ' + error.message, 'error');
-            }
-        }
-        
-        document.getElementById('travelForm').addEventListener('submit', handleSubmit);
-        init();
+
+                setTimeout(function() { disableForm(); }, 500);
+            })
+            .catch(function(err) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交报名';
+                showToast('提交失败：' + err.message, 'error');
+            });
+        });
     </script>
 </body>
 </html>

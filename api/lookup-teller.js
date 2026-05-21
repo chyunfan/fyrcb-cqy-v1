@@ -1,6 +1,6 @@
-// 查询报名记录 API
-// GET /api/query?tellerNumber=xxxxx
-const AIRTABLE_TABLE = 'cqy_q1';
+// 根据柜员号查询 tell_info 表，返回姓名和 ygxs
+// GET /api/lookup-teller?tellerNumber=xxxxx
+const AIRTABLE_TABLE = 'tell_info';
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -35,13 +35,22 @@ module.exports = async (req, res) => {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error((data.error && data.error.message) || '查询失败');
+            throw new Error(data.error && data.error.message || '查询失败');
         }
 
-        return res.status(200).json(data);
+        if (!data.records || data.records.length === 0) {
+            return res.status(404).json({ error: '未找到该柜员号，请检查后重试' });
+        }
+
+        const fields = data.records[0].fields;
+        return res.status(200).json({
+            tellerNumber: tellerNumber,
+            userName: fields['姓名'] || '',
+            ygxs: fields['ygxs'] || ''
+        });
 
     } catch (error) {
-        console.error('查询记录失败:', error);
+        console.error('查询柜员号失败:', error);
         return res.status(500).json({ error: error.message });
     }
 };
