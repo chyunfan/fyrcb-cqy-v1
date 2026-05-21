@@ -1,6 +1,6 @@
 // 企业微信 OAuth 代理
 // GET /api/wecom-auth?code=xxx
-// 流程：获取 AccessToken -> 用 code 换 UserId -> 用 UserId 获取完整用户信息（含柜员号）
+// 流程：获取 AccessToken -> 用 code 换 UserId -> 用 UserId 获取完整用户信息
 
 module.exports = async (req, res) => {
     // 设置 CORS 头
@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
         
         const userId = userData.userid;
         
-        // Step 3: 用 UserId 获取完整用户信息（含姓名、自定义字段柜员号）
+        // Step 3: 用 UserId 获取完整用户信息（含姓名、柜员号）
         const detailUrl = `https://qyapi.weixin.qq.com/cgi-bin/user/get?access_token=${accessToken}&userid=${userId}`;
         const detailResponse = await fetch(detailUrl);
         const detailData = await detailResponse.json();
@@ -59,11 +59,9 @@ module.exports = async (req, res) => {
         }
         
         // 解析用户信息
-        // 姓名：直接取 name
         const userName = detailData.name || '';
         
         // 柜员号：可能在 extattr（自定义字段）中
-        // 企业微信自定义字段格式：{ attrs: [ { name: '柜员号', value: '8051797', type: 0 } ] }
         let tellerNumber = '';
         if (detailData.extattr && detailData.extattr.attrs) {
             const attr = detailData.extattr.attrs.find(a => a.name === '柜员号');
@@ -72,27 +70,10 @@ module.exports = async (req, res) => {
             }
         }
         
-        // 如果 extattr 中没有，尝试其他可能的位置
-        if (!tellerNumber && detailData.external_profile && detailData.external_profile.external_attr) {
-            const attr = detailData.external_profile.external_attr.find(a => a.name === '柜员号');
-            if (attr) {
-                tellerNumber = attr.value;
-            }
-        }
-        
-        // 备用：如果没有找到柜员号，使用 UserId（可能数字格式本身就是柜员号）
-        if (!tellerNumber) {
-            // 如果 UserId 是纯数字，可能就是柜员号
-            if (/^\d+$/.test(userId)) {
-                tellerNumber = userId;
-            }
-        }
-        
         return res.status(200).json({
-            userId: tellerNumber || userId,  // 返回柜员号（如果获取到）
-            userName: userName,
-            rawUserId: userId,  // 原始 UserId（调试用）
-            detail: detailData  // 完整用户信息（调试用，生产环境可移除）
+            userId: userId,              // 企业微信 UserId（用于查询/存储）
+            userName: userName,          // 姓名
+            tellerNumber: tellerNumber   // 柜员号（用于展示）
         });
         
     } catch (error) {

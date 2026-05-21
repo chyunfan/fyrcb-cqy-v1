@@ -32,10 +32,9 @@ module.exports = async (req, res) => {
     }
     
     try {
-        // Airtable API 查询 - 使用柜员号过滤
-        // 柜员号是数字类型，userId 需要转为数字
-        const userIdNum = parseInt(userId);
-        const filterFormula = encodeURIComponent(`{柜员号}=${userIdNum}`);
+        // Airtable API 查询 - 使用用户ID过滤（企业微信 UserId）
+        // 用户ID是文本类型，直接使用
+        const filterFormula = encodeURIComponent(`{用户ID}="${userId}"`);
         const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula=${filterFormula}`;
         
         const response = await fetch(url, {
