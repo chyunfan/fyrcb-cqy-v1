@@ -1,11 +1,11 @@
 {
   "build": {
     "env": {
-      "AIRTABLE_BASE_ID": "@airtable_base_id",
-      "AIRTABLE_TOKEN": "@airtable_token",
-      "WECOM_CORPID": "@wecom_corpid",
-      "WECOM_AGENTID": "@wecom_agentid",
-      "WECOM_SECRET": "@wecom_secret"
+      "AIRTABLE_BASE_ID": "@AIRTABLE_BASE_ID",
+      "AIRTABLE_TOKEN": "@AIRTABLE_TOKEN",
+      "WECOM_CORPID": "@WECOM_CORPID",
+      "WECOM_AGENTID": "@WECOM_AGENTID",
+      "WECOM_SECRET": "@WECOM_SECRET"
     }
   }
 }
