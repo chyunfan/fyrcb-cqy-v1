@@ -36,7 +36,7 @@ module.exports = async (req, res) => {
         const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}`;
         
         const fields = {
-            '柜员号': parseInt(userId),
+            'id': parseInt(userId),
             '姓名': userName,
             '旅行线路': route,
             '月份': month,
@@ -45,11 +45,12 @@ module.exports = async (req, res) => {
         };
         
         let result;
+        let apiResponse;
         
         if (recordId) {
             // 更新现有记录
             const updateUrl = `${url}/${recordId}`;
-            const response = await fetch(updateUrl, {
+            apiResponse = await fetch(updateUrl, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -57,10 +58,10 @@ module.exports = async (req, res) => {
                 },
                 body: JSON.stringify({ fields })
             });
-            result = await response.json();
+            result = await apiResponse.json();
         } else {
             // 新增记录
-            const response = await fetch(url, {
+            apiResponse = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${AIRTABLE_TOKEN}`,
@@ -70,11 +71,11 @@ module.exports = async (req, res) => {
                     records: [{ fields }]
                 })
             });
-            const data = await response.json();
+            const data = await apiResponse.json();
             result = data.records?.[0] || data;
         }
         
-        if (!response.ok) {
+        if (!apiResponse.ok) {
             throw new Error(result.error?.message || '提交失败');
         }
         

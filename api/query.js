@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
     
     try {
         // Airtable API 查询
-        const filterFormula = encodeURIComponent(`{柜员号}=${userId}`);
+        const filterFormula = encodeURIComponent(`{id}=${userId}`);
         const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE}?filterByFormula=${filterFormula}`;
         
         const response = await fetch(url, {
