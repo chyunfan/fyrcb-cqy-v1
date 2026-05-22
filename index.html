@@ -428,7 +428,7 @@
                         <label class="form-label">旅行线路 <span class="required">*</span></label>
                         <div class="radio-group" id="routeGroup">
                             <div class="radio-item">
-                                <input type="radio" name="route" id="route1" value="1.江西庐山3天2晚。">
+                                <input type="radio" name="route" id="route1" value="1.江西庐山 3天2晚">
                                 <label for="route1">江西庐山<br><small>3天2晚</small></label>
                             </div>
                             <div class="radio-item">
@@ -448,7 +448,7 @@
                                 <label for="route5">宁海<br><small>3天2晚</small></label>
                             </div>
                             <div class="radio-item">
-                                <input type="radio" name="route" id="route6" value="6.台州椒江3天2晚">
+                                <input type="radio" name="route" id="route6" value="6.台州椒江3天2晚。">
                                 <label for="route6">台州椒江<br><small>3天2晚</small></label>
                             </div>
                         </div>
@@ -644,7 +644,7 @@
                     // 显示表单区域
                     document.getElementById('formSection').classList.remove('hidden');
 
-                    // 处理已存在的报名记录（新 API 已合并返回）
+                    // 优先使用已返回的报名记录直接回显（避免重复请求）
                     if (data.existingRecord) {
                         currentUser.recordId = data.existingRecord.id;
                         if (!data.existingRecord.allowEdit) {
@@ -655,6 +655,9 @@
                             fillForm(data.existingRecord.fields);
                             showToast('已加载您的报名信息，可修改后重新提交', 'success');
                         }
+                    } else {
+                        // 兜底：API 未返回记录时再查询一次
+                        queryExisting();
                     }
                 })
                 .catch(function(err) {
@@ -679,6 +682,7 @@
                 .then(function(data) {
                     if (data.error) {
                         console.error('查询记录失败:', data.error);
+                        showToast('查询记录失败：' + data.error, 'error');
                         return;
                     }
                     if (data.records && data.records.length > 0) {
@@ -700,23 +704,63 @@
                 })
                 .catch(function(err) {
                     console.error('查询记录失败:', err);
+                    showToast('查询记录失败，请检查网络或联系管理员', 'error');
                 });
         }
 
         function fillForm(fields) {
+            // 旅行线路：用关键词匹配（Airtable存的值可能和HTML value格式不同）
             if (fields['旅行线路']) {
-                var routeInput = document.querySelector('input[name="route"][value="' + fields['旅行线路'] + '"]');
-                if (routeInput) routeInput.checked = true;
+                var routeText = (fields['旅行线路'] || '').toString();
+                var routeInputs = document.querySelectorAll('input[name="route"]');
+                // 关键词映射：Airtable中的值包含这些关键词时，匹配对应radio
+                var routeKeywords = ['庐山', '厦门', '上海', '泰顺', '宁海', '台州'];
+                var matched = false;
+                for (var i = 0; i < routeKeywords.length; i++) {
+                    if (routeText.indexOf(routeKeywords[i]) !== -1) {
+                        routeInputs[i].checked = true;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    // 兜底：模糊匹配
+                    for (var i = 0; i < routeInputs.length; i++) {
+                        var val = routeInputs[i].value.replace(/\s+/g, '').replace(/[。.]/g, '').toLowerCase();
+                        var txt = routeText.replace(/\s+/g, '').replace(/[。.]/g, '').toLowerCase();
+                        if (val.indexOf(txt) !== -1 || txt.indexOf(val) !== -1) {
+                            routeInputs[i].checked = true;
+                            break;
+                        }
+                    }
+                }
             }
+
+            // 月份：精确匹配
             if (fields['月份']) {
-                var monthInput = document.querySelector('input[name="month"][value="' + fields['月份'] + '"]');
-                if (monthInput) monthInput.checked = true;
+                var monthText = (fields['月份'] || '').toString().replace(/[月]/g, '');
+                var monthInputs = document.querySelectorAll('input[name="month"]');
+                for (var i = 0; i < monthInputs.length; i++) {
+                    if (monthInputs[i].value.replace(/[月]/g, '') === monthText) {
+                        monthInputs[i].checked = true;
+                        break;
+                    }
+                }
             }
+
+            // 家属人数
             if (fields['家庭成员人数'] !== undefined) {
                 var val = String(fields['家庭成员人数']);
-                var familyInput = document.querySelector('input[name="family"][value="' + val + '"]');
-                if (familyInput) familyInput.checked = true;
+                var familyInputs = document.querySelectorAll('input[name="family"]');
+                for (var i = 0; i < familyInputs.length; i++) {
+                    if (familyInputs[i].value === val) {
+                        familyInputs[i].checked = true;
+                        break;
+                    }
+                }
             }
+
+            // 备注
             if (fields['备注']) {
                 document.getElementById('remark').value = fields['备注'];
             }
