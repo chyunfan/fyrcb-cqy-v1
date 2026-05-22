@@ -611,6 +611,16 @@
 
     <script>
         let currentUser = { tellerNumber: '', userName: '', ygxs: '', recordId: null, allowEdit: true };
+        let isQuerying = false; // 防连点标志
+
+        function clearReadonly() {
+            var formSection = document.getElementById('formSection');
+            formSection.classList.remove('readonly-mode');
+            var overlay = document.getElementById('readonlyOverlay');
+            if (overlay) overlay.remove();
+            document.getElementById('readonlyNotice').classList.remove('show');
+            currentUser.allowEdit = true;
+        }
 
         function showLoading(show, text) {
             var overlay = document.getElementById('loadingOverlay');
@@ -645,6 +655,9 @@
             var saved = sessionStorage.getItem('cqy_teller');
             if (!saved) return false;
 
+            // 清除之前可能残留的只读状态
+            clearReadonly();
+
             try {
                 var info = JSON.parse(saved);
                 currentUser.tellerNumber = info.tellerNumber;
@@ -668,10 +681,16 @@
 
         // 查询柜员号
         document.getElementById('tellerBtn').addEventListener('click', function() {
+            if (isQuerying) return; // 防连点
+            isQuerying = true;
+
             var input = document.getElementById('tellerInput');
             var num = input.value.trim();
             var errorEl = document.getElementById('tellerError');
             var successEl = document.getElementById('tellerSuccess');
+
+            // 清除之前可能残留的只读状态（切换柜员号场景）
+            clearReadonly();
 
             errorEl.textContent = '';
             successEl.textContent = '';
@@ -680,12 +699,14 @@
             if (!num) {
                 errorEl.textContent = '请输入柜员号';
                 input.classList.add('error');
+                isQuerying = false;
                 return;
             }
 
             if (!validateTellerNumber(num)) {
                 errorEl.textContent = '柜员号格式不正确，范围：8050003 ~ 8053999';
                 input.classList.add('error');
+                isQuerying = false;
                 return;
             }
 
@@ -702,6 +723,7 @@
                     if (data.error) {
                         errorEl.textContent = data.error;
                         input.classList.add('error');
+                        isQuerying = false;
                         return;
                     }
 
@@ -737,11 +759,13 @@
                         // 兜底：API 未返回记录时再查询一次
                         queryExisting();
                     }
+                    isQuerying = false;
                 })
                 .catch(function(err) {
                     showLoading(false);
                     document.getElementById('tellerBtn').disabled = false;
                     errorEl.textContent = '查询失败：' + err.message;
+                    isQuerying = false;
                 });
         });
 
