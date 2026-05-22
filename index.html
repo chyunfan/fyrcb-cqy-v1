@@ -201,22 +201,25 @@
         }
 
         .form-label .attachment-inline-link {
-            font-size: 13px;
-            font-weight: 400;
-            color: #667eea;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 3px;
-            padding: 3px 10px;
-            border-radius: 12px;
-            background: rgba(102,126,234,0.08);
-            transition: background 0.2s;
+            padding: 4px 12px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
+            transition: transform 0.15s, box-shadow 0.15s;
             white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(255,118,140,0.4);
+            letter-spacing: 0.5px;
         }
 
         .form-label .attachment-inline-link:active {
-            background: rgba(102,126,234,0.2);
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(255,118,140,0.3);
         }
         
         .form-label .required {
