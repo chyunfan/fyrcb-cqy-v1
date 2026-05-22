@@ -41,16 +41,53 @@
         .pagination { display:flex; justify-content:center; gap:8px; margin-top:14px; }
         .pagination button { padding:6px 12px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; font-size:13px; }
         .pagination button.active { background:#667eea; color:#fff; border-color:#667eea; }
-        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:20px; }
-        .stats-card { background:linear-gradient(135deg,#f8f9ff,#f0f4ff); border-radius:12px; padding:16px; border-left:4px solid #667eea; }
-        .stats-card .num { font-size:28px; font-weight:700; color:#667eea; }
-        .stats-card .label { font-size:13px; color:#666; margin-top:4px; }
-        .cross-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:14px; }
-        .cross-table th { background:#667eea; color:#fff; padding:8px 10px; }
-        .cross-table td { padding:8px 10px; border:1px solid #e0e0e0; text-align:center; }
-        .cross-table tr:nth-child(even) td { background:#f8f9ff; }
-        .cross-table .row-header { background:#f0f4ff; font-weight:600; color:#333; }
-        .cross-table .total-col { background:#fffbe6; font-weight:600; }
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+        .stats-card {
+            background:#fff; border-radius:14px; padding:18px 16px;
+            box-shadow:0 2px 12px rgba(102,126,234,0.1);
+            position:relative; overflow:hidden;
+            transition:transform 0.2s, box-shadow 0.2s;
+        }
+        .stats-card:active { transform:scale(0.98); }
+        .stats-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:4px;
+            background:linear-gradient(90deg,#667eea,#764ba2);
+        }
+        .stats-card .icon { font-size:24px; margin-bottom:6px; }
+        .stats-card .num { font-size:32px; font-weight:700; color:#667eea; line-height:1.2; }
+        .stats-card .label { font-size:13px; color:#888; margin-top:4px; }
+        .stats-card.allow .num { color:#52c41a; }
+        .stats-card.allow::before { background:linear-gradient(90deg,#52c41a,#73d13d); }
+        .stats-card.deny .num { color:#ff4d4f; }
+        .stats-card.deny::before { background:linear-gradient(90deg,#ff4d4f,#ff7875); }
+        .stats-card.route .num { color:#ff758c; }
+        .stats-card.route::before { background:linear-gradient(90deg,#ff758c,#ff7eb3); }
+
+        .cross-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; margin-top:14px; border-radius:12px; overflow:hidden; }
+        .cross-table th {
+            background:linear-gradient(135deg,#667eea,#764ba2); color:#fff;
+            padding:12px 10px; font-weight:600; text-align:center;
+            border-right:1px solid rgba(255,255,255,0.15);
+        }
+        .cross-table th:last-child { border-right:none; }
+        .cross-table td {
+            padding:14px 10px; text-align:center;
+            border-bottom:1px solid #f0f0f0; border-right:1px solid #f0f0f0;
+            color:#333; font-weight:500;
+        }
+        .cross-table td:last-child { border-right:none; }
+        .cross-table tr:last-child td { border-bottom:none; }
+        .cross-table tr:hover td { background:rgba(102,126,234,0.04); }
+        .cross-table .row-header {
+            background:#f8f9ff; font-weight:600; color:#333; text-align:left;
+            padding-left:14px; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+        }
+        .cross-table .zero { color:#ccc; font-weight:400; }
+        .cross-table .total-row { background:#333; color:#fff; }
+        .cross-table .total-row td { color:#fff; border-right:1px solid rgba(255,255,255,0.1); border-bottom:none; font-weight:700; }
+        .cross-table .total-row .row-header { background:#333; color:#fff; }
+        .cross-table .total-col { background:rgba(102,126,234,0.06); font-weight:700; color:#667eea; }
+        .cross-table .total-row .total-col { background:#333; color:#fff; }
         .batch-form { display:flex; flex-direction:column; gap:14px; }
         .batch-form label { font-size:14px; color:#333; font-weight:500; }
         .batch-form .radio-group { display:flex; gap:20px; margin:8px 0; }
@@ -416,20 +453,31 @@
     function renderStatsCards(data) {
         var html = '';
         // 总人数
-        html += '<div class="stats-card"><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
-        // 各线路 top3
-        var routes = Object.keys(data.routeCount || {}).sort(function(a,b) { return data.routeCount[b] - data.routeCount[a]; });
+        html += '<div class="stats-card"><div class="icon">👥</div><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
+        // 各线路：按固定顺序排序
+        var routeOrder = ['江西庐山', '福建厦门', '上海', '泰顺', '宁海', '台州'];
+        var routes = Object.keys(data.routeCount || {}).sort(function(a, b) {
+            var ia = routeOrder.findIndex(function(k) { return a.indexOf(k) !== -1; });
+            var ib = routeOrder.findIndex(function(k) { return b.indexOf(k) !== -1; });
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+        });
         routes.slice(0, 3).forEach(function(r) {
-            html += '<div class="stats-card" style="border-left-color:#ff758c;"><div class="num">' + data.routeCount[r] + '</div><div class="label">' + r + '</div></div>';
+            html += '<div class="stats-card route"><div class="icon">🚌</div><div class="num">' + data.routeCount[r] + '</div><div class="label">' + r + '</div></div>';
         });
         // 修改权限
-        html += '<div class="stats-card" style="border-left-color:#52c41a;"><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
-        html += '<div class="stats-card" style="border-left-color:#ff4d4f;"><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
+        html += '<div class="stats-card allow"><div class="icon">✅</div><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
+        html += '<div class="stats-card deny"><div class="icon">⛔</div><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
         document.getElementById('statsCards').innerHTML = html;
     }
 
     function renderCrossTable(data) {
-        var routes = Object.keys(data.crossTable || {});
+        // 线路按序号排序：1.江西庐山 2.福建厦门 3.上海 4.泰顺 5.宁海 6.台州
+        var routeOrder = ['江西庐山', '福建厦门', '上海', '泰顺', '宁海', '台州'];
+        var routes = (Object.keys(data.crossTable || {})).sort(function(a, b) {
+            var ia = routeOrder.findIndex(function(k) { return a.indexOf(k) !== -1; });
+            var ib = routeOrder.findIndex(function(k) { return b.indexOf(k) !== -1; });
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+        });
         var months = {};
         routes.forEach(function(r) {
             Object.keys(data.crossTable[r] || {}).forEach(function(m) { months[m] = true; });
@@ -441,7 +489,7 @@
             return;
         }
 
-        var html = '<table class="cross-table"><thead><tr><th>线路 ＼ 月份</th>';
+        var html = '<table class="cross-table"><thead><tr><th style="text-align:left;padding-left:14px;">线路 ＼ 月份</th>';
         monthList.forEach(function(m) { html += '<th>' + m + '</th>'; });
         html += '<th class="total-col">合计</th></tr></thead><tbody>';
 
@@ -454,7 +502,7 @@
             var rowTotal = 0;
             monthList.forEach(function(m) {
                 var c = (data.crossTable[r] && data.crossTable[r][m]) || 0;
-                html += '<td>' + c + '人</td>';
+                html += '<td class="' + (c === 0 ? 'zero' : '') + '">' + c + '人</td>';
                 rowTotal += c;
                 colTotals[m] += c;
             });
@@ -463,9 +511,9 @@
         });
 
         // 合计行
-        html += '<tr><td class="row-header">合计</td>';
+        html += '<tr class="total-row"><td class="row-header">合计</td>';
         monthList.forEach(function(m) {
-            html += '<td class="total-col">' + colTotals[m] + '人</td>';
+            html += '<td>' + colTotals[m] + '人</td>';
         });
         html += '<td class="total-col">' + grandTotal + '人</td></tr>';
 
