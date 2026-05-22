@@ -16,10 +16,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            padding-top: 76px; /* 给顶部导航留空间 */
+            padding-top: 76px;
         }
         
-        /* 顶部导航栏 - 固定在左上角 */
         .top-bar {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -69,6 +68,9 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 96px);
         }
         
         .header {
@@ -81,60 +83,57 @@
         
         .content {
             padding: 25px 20px;
-        }
-        
-        .intro {
-            background: #fff7e6;
-            border-left: 4px solid #faad14;
-            padding: 12px 15px;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #666;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .attachment-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
         
         .attachment-item {
-            background: #f8f9ff;
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
             border: 1px solid #e8e8ff;
-            border-radius: 12px;
-            padding: 14px 16px;
+            border-radius: 14px;
+            padding: 16px 18px;
             display: grid;
             grid-template-columns: 1fr auto;
-            gap: 12px;
+            gap: 14px;
             align-items: center;
-            min-height: 72px;
+            min-height: 76px;
             transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.08);
         }
         
         .attachment-item:hover {
-            background: #f0f4ff;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
             border-color: #667eea;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.15);
         }
         
         .attachment-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             overflow: hidden;
         }
         
         .attachment-icon {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 22px;
+            font-size: 24px;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.3);
         }
         
         .attachment-text {
@@ -155,7 +154,7 @@
         .attachment-desc {
             font-size: 12px;
             color: #999;
-            margin-top: 3px;
+            margin-top: 4px;
             white-space: nowrap;
         }
         
@@ -173,6 +172,8 @@
             transition: all 0.3s;
             text-decoration: none;
             flex-shrink: 0;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.25);
         }
         
         .view-btn:hover {
@@ -180,11 +181,12 @@
             transform: scale(1.05);
         }
         
-        .footer {
+        .footer-b {
             text-align: center;
-            padding: 20px;
-            color: #999;
             font-size: 12px;
+            color: #999;
+            padding: 16px;
+            margin-top: 10px;
             border-top: 1px solid #f0f0f0;
         }
     </style>
@@ -200,6 +202,7 @@
             <p>点击线路名称查看图片，预览页可下载PDF</p>
         </div>
         
+        <div class="content">
             
             <div class="attachment-list">
                 <!-- 线路1 -->
@@ -258,7 +261,7 @@
                             <span class="attachment-name">
                                 4. 泰顺苍南 3天2晚
                             </span>
-                            <div class="attachment-desc">沙滩古镇详细行程</div>
+                            <div class="attachment-desc">温泉古镇详细行程</div>
                         </div>
                     </div>
                     <a href="view.html?route=4.泰顺苍南" class="view-btn">
@@ -274,7 +277,7 @@
                             <span class="attachment-name">
                                 5. 宁海 3天2晚
                             </span>
-                            <div class="attachment-desc">海岛古镇详细行程</div>
+                            <div class="attachment-desc">森林温泉详细行程</div>
                         </div>
                     </div>
                     <a href="view.html?route=5.宁海" class="view-btn">
@@ -290,7 +293,7 @@
                             <span class="attachment-name">
                                 6. 台州椒江 3天2晚
                             </span>
-                            <div class="attachment-desc">古城海滩详细行程</div>
+                            <div class="attachment-desc">海岛风情详细行程</div>
                         </div>
                     </div>
                     <a href="view.html?route=6.台州椒江" class="view-btn">
@@ -300,11 +303,11 @@
             </div>
         </div>
         
-        <div class="footer">
-            趁春秋未老，携农商同袍，踏遍云水处，闲听人间嚣
+        <div class="footer-b">
+            © 2026 chyunfan · All rights reserved.
         </div>
     </div>
-
+    
     <script>
         // 查看按钮防连点
         document.querySelectorAll('.view-btn').forEach(function(btn) {
