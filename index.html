@@ -419,11 +419,11 @@
         }
 
         /* 只读模式 */
-        #formSection {
+        #formFieldsWrapper {
             position: relative;
         }
 
-        #formSection.readonly-mode .submit-btn {
+        #formSection.readonly-mode #formFieldsWrapper .submit-btn {
             display: none;
         }
 
@@ -492,9 +492,10 @@
                     </div>
                     <div class="form-group">
                         <a href="attachments.html" class="attachment-banner">
-                            📎 查看各线路附件
+                        📎 查看各线路附件
                         </a>
                     </div>
+                    <div id="formFieldsWrapper">
 
                     <div class="form-group">
                         <label class="form-label">旅行线路 <span class="required">*</span></label>
@@ -591,6 +592,7 @@
                     <button type="submit" class="submit-btn" id="submitBtn">
                         提交报名
                     </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -850,7 +852,7 @@
             var overlay = document.createElement('div');
             overlay.className = 'readonly-overlay';
             overlay.id = 'readonlyOverlay';
-            formSection.appendChild(overlay);
+            document.getElementById('formFieldsWrapper').appendChild(overlay);
 
             document.getElementById('readonlyNotice').classList.add('show');
         }
