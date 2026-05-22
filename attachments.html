@@ -45,6 +45,7 @@
             border-radius: 20px;
             flex-shrink: 0;
             transition: background 0.2s;
+            z-index: 1;
         }
 
         .back-btn:active {
@@ -52,11 +53,13 @@
         }
 
         .page-title {
-            flex: 1;
-            text-align: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             color: #fff;
             font-size: 16px;
             font-weight: 500;
+            white-space: nowrap;
         }
         
         .container {
@@ -144,18 +147,13 @@
         
         .attachment-name {
             font-size: 15px;
-            color: #667eea;
+            color: #333;
             font-weight: 500;
             white-space: nowrap;
-            text-decoration: underline;
-            text-decoration-color: #667eea;
-            text-underline-offset: 3px;
-            cursor: pointer;
         }
         
         .attachment-name:hover {
-            color: #764ba2;
-            text-decoration-color: #764ba2;
+            color: #667eea;
         }
         
         .attachment-desc {
@@ -217,9 +215,9 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🚌</div>
                         <div class="attachment-text">
-                            <a href="view.html?route=1.江西庐山" class="attachment-name">
+                            <span class="attachment-name">
                                 1. 江西庐山 3天2晚
-                            </a>
+                            </span>
                             <div class="attachment-desc">庐山风景区详细行程</div>
                         </div>
                     </div>
@@ -233,9 +231,9 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🏖️</div>
                         <div class="attachment-text">
-                            <a href="view.html?route=2.福建厦门" class="attachment-name">
+                            <span class="attachment-name">
                                 2. 福建厦门 3天2晚
-                            </a>
+                            </span>
                             <div class="attachment-desc">鼓浪屿详细行程</div>
                         </div>
                     </div>
@@ -249,9 +247,9 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🌆</div>
                         <div class="attachment-text">
-                            <a href="view.html?route=3.上海" class="attachment-name">
+                            <span class="attachment-name">
                                 3. 上海 2天1晚
-                            </a>
+                            </span>
                             <div class="attachment-desc">上海都市游详细行程</div>
                         </div>
                     </div>
@@ -265,9 +263,9 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🏞️</div>
                         <div class="attachment-text">
-                            <a href="view.html?route=4.泰顺苍南" class="attachment-name">
+                            <span class="attachment-name">
                                 4. 泰顺苍南 3天2晚
-                            </a>
+                            </span>
                             <div class="attachment-desc">温泉古镇详细行程</div>
                         </div>
                     </div>
@@ -281,9 +279,9 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🌲</div>
                         <div class="attachment-text">
-                            <a href="view.html?route=5.宁海" class="attachment-name">
+                            <span class="attachment-name">
                                 5. 宁海 3天2晚
-                            </a>
+                            </span>
                             <div class="attachment-desc">森林温泉详细行程</div>
                         </div>
                     </div>
@@ -297,9 +295,9 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">⛰️</div>
                         <div class="attachment-text">
-                            <a href="view.html?route=6.台州椒江" class="attachment-name">
+                            <span class="attachment-name">
                                 6. 台州椒江 3天2晚
-                            </a>
+                            </span>
                             <div class="attachment-desc">海岛风情详细行程</div>
                         </div>
                     </div>
