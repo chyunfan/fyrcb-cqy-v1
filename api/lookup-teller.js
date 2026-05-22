@@ -1,6 +1,10 @@
-// 根据柜员号查询 tell_info 表，返回姓名和 ygxs
+// 合并查询：根据柜员号同时查询 tell_info 和 cqy_q1
 // GET /api/lookup-teller?tellerNumber=xxxxx
-const AIRTABLE_TABLE = 'tell_info';
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+
+const TELL_INFO_TABLE = 'tell_info';
+const CQY_Q1_TABLE = 'cqy_q1';
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,46 +15,70 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
 
-    const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-    const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-
-    if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN) {
-        return res.status(500).json({ error: 'Airtable 配置未设置' });
-    }
-
     const { tellerNumber } = req.query;
     if (!tellerNumber) {
         return res.status(400).json({ error: '缺少柜员号参数' });
     }
 
+    if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN) {
+        return res.status(500).json({ error: 'Airtable 配置未设置' });
+    }
+
     try {
-        const tableName = encodeURIComponent(AIRTABLE_TABLE);
-        const url = 'https://api.airtable.com/v0/' + AIRTABLE_BASE_ID + '/' + tableName;
-        const filter = encodeURIComponent('{柜员号}=' + parseInt(tellerNumber, 10));
-        const apiUrl = url + '?filterByFormula=' + filter;
+        const num = parseInt(tellerNumber, 10);
+        const baseUrl = 'https://api.airtable.com/v0/' + AIRTABLE_BASE_ID;
 
-        const response = await fetch(apiUrl, {
-            headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN }
-        });
-        const data = await response.json();
+        // 并行查询 tell_info 和 cqy_q1
+        const [tellResp, cqyResp] = await Promise.all([
+            fetch(baseUrl + '/' + encodeURIComponent(TELL_INFO_TABLE) + '?filterByFormula=' + encodeURIComponent('{柜员号}=' + num), {
+                headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN }
+            }),
+            fetch(baseUrl + '/' + encodeURIComponent(CQY_Q1_TABLE) + '?filterByFormula=' + encodeURIComponent('{柜员号}=' + num), {
+                headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN }
+            })
+        ]);
 
-        if (!response.ok) {
-            throw new Error(data.error && data.error.message || '查询失败');
+        const tellData = await tellResp.json();
+        const cqyData = await cqyResp.json();
+
+        if (!tellResp.ok) {
+            throw new Error(tellData.error && tellData.error.message || '查询 tell_info 失败');
         }
 
-        if (!data.records || data.records.length === 0) {
+        if (!cqyResp.ok) {
+            throw new Error(cqyData.error && cqyData.error.message || '查询 cqy_q1 失败');
+        }
+
+        // tell_info 结果
+        let result = {
+            tellerNumber: tellerNumber,
+            userName: '',
+            ygxs: '',
+            existingRecord: null
+        };
+
+        if (tellData.records && tellData.records.length > 0) {
+            const fields = tellData.records[0].fields;
+            result.userName = fields['姓名'] || '';
+            result.ygxs = fields['ygxs'] || '';
+        } else {
             return res.status(404).json({ error: '未找到该柜员号，请检查后重试' });
         }
 
-        const fields = data.records[0].fields;
-        return res.status(200).json({
-            tellerNumber: tellerNumber,
-            userName: fields['姓名'] || '',
-            ygxs: fields['ygxs'] || ''
-        });
+        // cqy_q1 结果
+        if (cqyData.records && cqyData.records.length > 0) {
+            const record = cqyData.records[0];
+            result.existingRecord = {
+                id: record.id,
+                fields: record.fields,
+                allowEdit: record.fields['是否允许修改'] !== '否'
+            };
+        }
+
+        return res.status(200).json(result);
 
     } catch (error) {
-        console.error('查询柜员号失败:', error);
+        console.error('合并查询失败:', error);
         return res.status(500).json({ error: error.message });
     }
 };
