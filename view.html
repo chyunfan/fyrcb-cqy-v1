@@ -30,12 +30,21 @@
 
         .back-btn {
             color: #fff;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 600;
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 4px;
-            opacity: 0.9;
+            background: rgba(255,255,255,0.18);
+            padding: 6px 14px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .back-btn:active {
+            background: rgba(255,255,255,0.35);
         }
 
         .page-title {
@@ -47,9 +56,30 @@
             opacity: 0.95;
         }
 
+        .download-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .download-btn:active {
+            background: rgba(255,255,255,0.35);
+        }
+
         .page-counter {
             color: rgba(255,255,255,0.7);
             font-size: 13px;
+            flex-shrink: 0;
         }
 
         /* 轮播容器 */
@@ -161,6 +191,7 @@
     <div class="top-bar">
         <a href="javascript:history.back()" class="back-btn">← 返回</a>
         <div class="page-title" id="pageTitle">线路详情</div>
+        <a href="" class="download-btn" id="downloadBtn" download>📥 下载</a>
         <div class="page-counter" id="pageCounter"></div>
     </div>
 
@@ -213,8 +244,13 @@
         var titleEl = document.getElementById('pageTitle');
         var counterEl = document.getElementById('pageCounter');
         var pageInfoEl = document.getElementById('pageInfo');
+        var downloadBtn = document.getElementById('downloadBtn');
 
         titleEl.textContent = cfg.displayName;
+
+        // 设置下载按钮链接
+        var pdfFileName = routeName + '.pdf';
+        downloadBtn.href = 'Route/pdf/' + encodeURIComponent(pdfFileName);
 
         // ========== 生成幻灯片 ==========
         function buildSlides() {

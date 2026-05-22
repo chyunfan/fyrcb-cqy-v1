@@ -16,6 +16,47 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            padding-top: 76px; /* 给顶部导航留空间 */
+        }
+        
+        /* 顶部导航栏 - 固定在左上角 */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .back-btn {
+            color: #fff;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.18);
+            padding: 6px 14px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .back-btn:active {
+            background: rgba(255,255,255,0.35);
+        }
+
+        .page-title {
+            flex: 1;
+            text-align: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
         }
         
         .container {
@@ -30,34 +71,13 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            padding: 30px 20px;
+            padding: 20px;
             text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 22px;
-            margin-bottom: 8px;
         }
         
         .header p {
             font-size: 14px;
             opacity: 0.9;
-        }
-        
-        .header .attachment-link {
-            display: inline-block;
-            margin-top: 12px;
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        
-        .header .attachment-link:hover {
-            background: rgba(255,255,255,0.3);
         }
         
         .content {
@@ -176,16 +196,19 @@
     </style>
 </head>
 <body>
+    <div class="top-bar">
+        <a href="javascript:history.back()" class="back-btn">← 返回</a>
+        <div class="page-title">📎 春秋游-线路附件</div>
+    </div>
+
     <div class="container">
         <div class="header">
-            <h1>📎 春秋游-线路附件</h1>
-            <p>点击线路名称预览PDF，点击查看浏览图片</p>
-            <a href="javascript:history.back()" class="attachment-link">← 返回</a>
+            <p>点击线路名称查看图片，预览页可下载PDF</p>
         </div>
         
         <div class="content">
             <div class="intro">
-                💡 点击线路名称预览PDF，或点击查看浏览图片详情。预览页可下载PDF。
+                💡 点击线路名称查看图片，预览页可下载PDF。
             </div>
             
             <div class="attachment-list">
@@ -194,7 +217,7 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🚌</div>
                         <div class="attachment-text">
-                            <a href="pdf-viewer.html?file=1.江西庐山.pdf" class="attachment-name">
+                            <a href="view.html?route=1.江西庐山" class="attachment-name">
                                 1. 江西庐山 3天2晚
                             </a>
                             <div class="attachment-desc">庐山风景区详细行程</div>
@@ -210,7 +233,7 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🏖️</div>
                         <div class="attachment-text">
-                            <a href="pdf-viewer.html?file=2.福建厦门.pdf" class="attachment-name">
+                            <a href="view.html?route=2.福建厦门" class="attachment-name">
                                 2. 福建厦门 3天2晚
                             </a>
                             <div class="attachment-desc">鼓浪屿详细行程</div>
@@ -226,7 +249,7 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🌆</div>
                         <div class="attachment-text">
-                            <a href="pdf-viewer.html?file=3.上海.pdf" class="attachment-name">
+                            <a href="view.html?route=3.上海" class="attachment-name">
                                 3. 上海 2天1晚
                             </a>
                             <div class="attachment-desc">上海都市游详细行程</div>
@@ -242,7 +265,7 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🏞️</div>
                         <div class="attachment-text">
-                            <a href="pdf-viewer.html?file=4.泰顺苍南.pdf" class="attachment-name">
+                            <a href="view.html?route=4.泰顺苍南" class="attachment-name">
                                 4. 泰顺苍南 3天2晚
                             </a>
                             <div class="attachment-desc">温泉古镇详细行程</div>
@@ -258,7 +281,7 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">🌲</div>
                         <div class="attachment-text">
-                            <a href="pdf-viewer.html?file=5.宁海.pdf" class="attachment-name">
+                            <a href="view.html?route=5.宁海" class="attachment-name">
                                 5. 宁海 3天2晚
                             </a>
                             <div class="attachment-desc">森林温泉详细行程</div>
@@ -274,7 +297,7 @@
                     <div class="attachment-info">
                         <div class="attachment-icon">⛰️</div>
                         <div class="attachment-text">
-                            <a href="pdf-viewer.html?file=6.台州椒江.pdf" class="attachment-name">
+                            <a href="view.html?route=6.台州椒江" class="attachment-name">
                                 6. 台州椒江 3天2晚
                             </a>
                             <div class="attachment-desc">海岛风情详细行程</div>
