@@ -4,188 +4,489 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>春秋游报名管理</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
+        :root {
+            --primary: #4a90d9;
+            --primary-light: #e8f4fd;
+            --primary-dark: #2b6cb0;
+            --accent: #10b981;
+            --accent-light: #ecfdf5;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --warning: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --white: #ffffff;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background:#f0f2f5; min-height:100vh; }
-        .unauthorized { text-align:center; padding:80px 20px; color:#999; font-size:16px; }
-        .container { max-width:900px; margin:0 auto; padding:20px; }
-        .header { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:20px; border-radius:16px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; }
-        .header h1 { font-size:20px; font-weight:600; }
-        .header .token-status { font-size:13px; opacity:0.8; }
-        .tabs { display:flex; background:#fff; border-radius:12px; overflow:hidden; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-        .tab { flex:1; padding:14px; text-align:center; font-size:14px; cursor:pointer; transition:all 0.2s; color:#666; border-bottom:3px solid transparent; }
-        .tab.active { color:#667eea; font-weight:600; border-bottom-color:#667eea; background:rgba(102,126,234,0.05); }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            background: var(--gray-100);
+            min-height: 100vh;
+            color: var(--gray-700);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== 无权限页 ===== */
+        .unauthorized {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            min-height:100vh; color:var(--gray-400); font-size:16px; text-align:center; padding:40px 20px;
+        }
+        .unauthorized h2 { font-size:28px; color:var(--gray-600); margin-bottom:12px; }
+        .unauthorized code {
+            background:var(--gray-200); padding:3px 8px; border-radius:6px;
+            font-size:14px; color:var(--primary);
+        }
+
+        /* ===== 主容器 ===== */
+        .container { max-width:1080px; margin:0 auto; padding:24px 20px 40px; }
+
+        /* ===== 顶部栏 ===== */
+        .header {
+            background: linear-gradient(135deg, #4a90d9 0%, #2563eb 50%, #1d4ed8 100%);
+            color: #fff; padding: 24px 28px; border-radius: var(--radius-lg);
+            margin-bottom: 24px; display:flex; align-items:center; justify-content:space-between;
+            box-shadow: 0 4px 20px rgba(74,144,217,0.3);
+        }
+        .header-left { display:flex; align-items:center; gap:14px; }
+        .header-icon {
+            width:44px; height:44px; background:rgba(255,255,255,0.18); border-radius:12px;
+            display:flex; align-items:center; justify-content:center; font-size:20px;
+        }
+        .header h1 { font-size:20px; font-weight:700; letter-spacing:0.5px; }
+        .header .token-status {
+            font-size:13px; opacity:0.85; background:rgba(255,255,255,0.15);
+            padding:5px 14px; border-radius:20px; display:flex; align-items:center; gap:6px;
+        }
+
+        /* ===== Tab 栏 ===== */
+        .tabs {
+            display:flex; background:var(--white); border-radius:var(--radius-md);
+            overflow:hidden; margin-bottom:24px; box-shadow:var(--shadow-sm);
+        }
+        .tab {
+            flex:1; padding:14px 16px; text-align:center; font-size:14px; cursor:pointer;
+            transition: all 0.25s; color:var(--gray-500); border-bottom:3px solid transparent;
+            font-weight:500; user-select:none; display:flex; align-items:center;
+            justify-content:center; gap:8px;
+        }
+        .tab:hover { background:var(--primary-light); color:var(--primary); }
+        .tab.active {
+            color:var(--primary); font-weight:600;
+            border-bottom-color:var(--primary); background:rgba(74,144,217,0.04);
+        }
+
+        /* ===== Tab 内容 ===== */
         .tab-content { display:none; }
-        .tab-content.active { display:block; }
-        .card { background:#fff; border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-        .card-title { font-size:15px; font-weight:600; color:#333; margin-bottom:14px; }
-        .filter-row { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-        .filter-row select, .filter-row input { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
-        .filter-row input[type="text"] { width:120px; }
-        .btn { padding:8px 16px; border:none; border-radius:8px; font-size:13px; cursor:pointer; transition:all 0.15s; }
-        .btn-primary { background:#667eea; color:#fff; }
-        .btn-primary:active { background:#5568d3; }
-        .btn-danger { background:#ff4d4f; color:#fff; }
-        .btn-danger:active { background:#d9363e; }
-        .btn-success { background:#52c41a; color:#fff; }
-        .btn-outline { background:transparent; border:1px solid #667eea; color:#667eea; }
-        .btn-sm { padding:5px 10px; font-size:12px; }
-        .table-wrap { overflow-x:auto; }
-        table { width:100%; border-collapse:collapse; font-size:13px; }
-        th { background:#f8f9ff; padding:10px 8px; text-align:left; font-weight:600; color:#333; border-bottom:2px solid #e0e0e0; white-space:nowrap; }
-        td { padding:10px 8px; border-bottom:1px solid #f0f0f0; color:#333; }
-        tr:hover td { background:#f8f9ff; }
-        .badge-yes { color:#52c41a; font-weight:600; }
-        .badge-no { color:#ff4d4f; font-weight:600; }
-        .checkbox { width:16px; height:16px; cursor:pointer; }
-        .pagination { display:flex; justify-content:center; gap:8px; margin-top:14px; }
-        .pagination button { padding:6px 12px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; font-size:13px; }
-        .pagination button.active { background:#667eea; color:#fff; border-color:#667eea; }
-        .stats-grid { display:grid; gap:14px; margin-bottom:14px; }
+        .tab-content.active { display:block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ===== 卡片 ===== */
+        .card {
+            background:var(--white); border-radius:var(--radius-md);
+            padding:24px; margin-bottom:20px; box-shadow:var(--shadow-sm);
+            border:1px solid var(--gray-200);
+        }
+        .card-title {
+            font-size:15px; font-weight:600; color:var(--gray-800);
+            margin-bottom:18px; display:flex; align-items:center; gap:8px;
+        }
+        .card-title .fa { color:var(--primary); font-size:14px; }
+
+        /* ===== 筛选栏 ===== */
+        .filter-row { display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+        .filter-row select,
+        .filter-row input[type="text"] {
+            padding:9px 14px; border:1px solid var(--gray-200); border-radius:var(--radius-sm);
+            font-size:13px; color:var(--gray-700); background:var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s; outline:none; min-width:0;
+        }
+        .filter-row select { cursor:pointer; padding-right:32px; appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 12px center;
+        }
+        .filter-row select:focus,
+        .filter-row input[type="text"]:focus {
+            border-color:var(--primary); box-shadow:0 0 0 3px rgba(74,144,217,0.12);
+        }
+        .filter-row input[type="text"] { width:130px; }
+        .filter-row input[type="text"]::placeholder { color:var(--gray-400); }
+
+        /* ===== 按钮 ===== */
+        .btn {
+            padding:9px 18px; border:none; border-radius:var(--radius-sm);
+            font-size:13px; cursor:pointer; transition:all 0.2s; font-weight:500;
+            display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+        .btn:active { transform:scale(0.97); }
+        .btn-primary { background:var(--primary); color:var(--white); box-shadow:0 2px 8px rgba(74,144,217,0.3); }
+        .btn-primary:hover { background:var(--primary-dark); box-shadow:0 4px 12px rgba(74,144,217,0.4); }
+        .btn-danger { background:var(--danger); color:var(--white); box-shadow:0 2px 8px rgba(239,68,68,0.3); }
+        .btn-danger:hover { background:#dc2626; box-shadow:0 4px 12px rgba(239,68,68,0.4); }
+        .btn-success { background:var(--accent); color:var(--white); box-shadow:0 2px 8px rgba(16,185,129,0.3); }
+        .btn-success:hover { background:#059669; }
+        .btn-outline {
+            background:transparent; border:1px solid var(--gray-200); color:var(--gray-600);
+            box-shadow:none;
+        }
+        .btn-outline:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+        .btn-sm { padding:6px 12px; font-size:12px; }
+        .btn-lg { padding:12px 28px; font-size:14px; font-weight:600; }
+
+        /* ===== 表格 ===== */
+        .table-wrap { overflow-x:auto; margin:0 -4px; padding:0 4px; }
+        .table-wrap table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+        .table-wrap th {
+            background:var(--gray-50); padding:12px 14px; text-align:left; font-weight:600;
+            color:var(--gray-600); border-bottom:2px solid var(--gray-200);
+            white-space:nowrap; font-size:12px; text-transform:uppercase; letter-spacing:0.5px;
+            position:sticky; top:0; z-index:1;
+        }
+        .table-wrap td {
+            padding:12px 14px; border-bottom:1px solid var(--gray-100);
+            color:var(--gray-700); vertical-align:middle;
+        }
+        .table-wrap tbody tr { transition:background 0.15s; }
+        .table-wrap tbody tr:hover td { background:var(--primary-light); }
+        .table-wrap tbody tr:last-child td { border-bottom:none; }
+
+        /* 数字居中，文字左对齐 */
+        .table-wrap .num-col { text-align:center; font-weight:600; color:var(--primary); font-size:14px; }
+        .table-wrap .text-col { text-align:left; }
+        .table-wrap .action-col { text-align:center; }
+
+        /* 徽章 */
+        .badge {
+            display:inline-flex; align-items:center; gap:4px;
+            padding:3px 10px; border-radius:20px; font-size:12px; font-weight:600;
+        }
+        .badge-yes { background:var(--accent-light); color:#059669; }
+        .badge-no { background:var(--danger-light); color:#dc2626; }
+
+        /* Checkbox */
+        .checkbox {
+            width:18px; height:18px; cursor:pointer; accent-color:var(--primary);
+            border-radius:4px; flex-shrink:0;
+        }
+
+        /* ===== Toggle 开关 ===== */
+        .toggle-wrap { display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
+        .toggle {
+            position:relative; width:42px; height:24px; background:var(--gray-300);
+            border-radius:12px; transition:background 0.25s; flex-shrink:0;
+        }
+        .toggle::after {
+            content:''; position:absolute; top:3px; left:3px; width:18px; height:18px;
+            background:var(--white); border-radius:50%; transition:transform 0.25s;
+            box-shadow:0 1px 3px rgba(0,0,0,0.15);
+        }
+        .toggle.active { background:var(--accent); }
+        .toggle.active::after { transform:translateX(18px); }
+        .toggle-label { font-size:13px; color:var(--gray-600); }
+
+        /* ===== 分页 ===== */
+        .pagination { display:flex; justify-content:center; gap:6px; margin-top:16px; flex-wrap:wrap; }
+        .pagination button {
+            padding:7px 13px; border:1px solid var(--gray-200); background:var(--white);
+            border-radius:var(--radius-sm); cursor:pointer; font-size:13px;
+            color:var(--gray-600); transition:all 0.15s; font-weight:500;
+        }
+        .pagination button:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-light); }
+        .pagination button.active { background:var(--primary); color:var(--white); border-color:var(--primary); box-shadow:0 2px 8px rgba(74,144,217,0.3); }
+
+        /* ===== 统计看板 ===== */
+        .stats-grid { display:grid; gap:16px; margin-bottom:20px; }
         .stats-grid-row1 { grid-template-columns:repeat(3, 1fr); }
         .stats-grid-row2 { grid-template-columns:repeat(6, 1fr); }
+
         .stats-card {
-            background:#fff; border-radius:14px; padding:18px 16px;
-            box-shadow:0 2px 12px rgba(102,126,234,0.1);
-            position:relative; overflow:hidden;
-            transition:transform 0.2s, box-shadow 0.2s;
+            background:var(--white); border-radius:var(--radius-md); padding:20px 16px;
+            box-shadow:var(--shadow-sm); border:1px solid var(--gray-200);
+            position:relative; overflow:hidden; transition:transform 0.2s, box-shadow 0.2s;
         }
-        .stats-card:active { transform:scale(0.98); }
+        .stats-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
         .stats-card::before {
             content:''; position:absolute; top:0; left:0; right:0; height:4px;
-            background:linear-gradient(90deg,#667eea,#764ba2);
+            background:linear-gradient(90deg, var(--primary), var(--primary-dark));
         }
-        .stats-card .icon { font-size:24px; margin-bottom:6px; }
-        .stats-card .num { font-size:32px; font-weight:700; color:#667eea; line-height:1.2; }
-        .stats-card .label { font-size:13px; color:#888; margin-top:4px; }
-        .stats-card.allow .num { color:#52c41a; }
-        .stats-card.allow::before { background:linear-gradient(90deg,#52c41a,#73d13d); }
-        .stats-card.deny .num { color:#ff4d4f; }
-        .stats-card.deny::before { background:linear-gradient(90deg,#ff4d4f,#ff7875); }
-        .stats-card.route .num { color:#ff758c; }
-        .stats-card.route::before { background:linear-gradient(90deg,#ff758c,#ff7eb3); }
+        .stats-card .icon {
+            width:40px; height:40px; border-radius:10px; display:flex;
+            align-items:center; justify-content:center; font-size:18px; margin-bottom:10px;
+        }
+        .stats-card .num { font-size:30px; font-weight:700; line-height:1.2; }
+        .stats-card .label { font-size:12px; color:var(--gray-500); margin-top:4px; font-weight:500; }
+        .stats-card.allow::before { background:linear-gradient(90deg, var(--accent), #059669); }
+        .stats-card.allow .icon { background:var(--accent-light); color:var(--accent); }
+        .stats-card.allow .num { color:var(--accent); }
+        .stats-card.deny::before { background:linear-gradient(90deg, var(--danger), #dc2626); }
+        .stats-card.deny .icon { background:var(--danger-light); color:var(--danger); }
+        .stats-card.deny .num { color:var(--danger); }
+        .stats-card.route::before { background:linear-gradient(90deg, #8b5cf6, #7c3aed); }
+        .stats-card.route .icon { background:#f3e8ff; color:#7c3aed; }
+        .stats-card.route .num { color:#7c3aed; }
 
-        .cross-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; margin-top:14px; border-radius:12px; overflow:hidden; }
-        .cross-table th {
-            background:linear-gradient(135deg,#667eea,#764ba2); color:#fff;
-            padding:12px 10px; font-weight:600; text-align:center;
-            border-right:1px solid rgba(255,255,255,0.15);
+        /* ===== 交叉表格 ===== */
+        .cross-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; margin-top:16px; }
+        .cross-table thead th {
+            background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color:var(--white); padding:12px 10px; font-weight:600; text-align:center;
+            border-right:1px solid rgba(255,255,255,0.15); letter-spacing:0.3px;
         }
-        .cross-table th:last-child { border-right:none; }
+        .cross-table thead th:first-child { border-radius:10px 0 0 0; text-align:left; padding-left:16px; }
+        .cross-table thead th:last-child { border-right:none; border-radius:0 10px 0 0; }
+        .cross-table thead th:only-child { border-radius:10px 10px 0 0; }
+        .cross-table thead th:last-child:first-child { border-radius:10px 10px 0 0; }
         .cross-table td {
-            padding:14px 10px; text-align:center;
-            border-bottom:1px solid #f0f0f0; border-right:1px solid #f0f0f0;
-            color:#333; font-weight:500;
+            padding:13px 10px; text-align:center; border-bottom:1px solid var(--gray-100);
+            border-right:1px solid var(--gray-100); color:var(--gray-700); font-weight:500;
         }
         .cross-table td:last-child { border-right:none; }
-        .cross-table tr:last-child td { border-bottom:none; }
-        .cross-table tr:hover td { background:rgba(102,126,234,0.04); }
+        .cross-table tbody tr:last-child td { border-bottom:none; }
+        .cross-table tbody tr:hover td { background:rgba(74,144,217,0.04); }
         .cross-table .row-header {
-            background:#f8f9ff; font-weight:600; color:#333; text-align:left;
-            padding-left:14px; max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+            background:var(--gray-50); font-weight:600; color:var(--gray-700);
+            text-align:left; padding-left:16px; max-width:150px;
+            white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
-        .cross-table .zero { color:#ccc; font-weight:400; }
-        .cross-table .total-row { background:#333; color:#fff; }
-        .cross-table .total-row td { color:#fff; border-right:1px solid rgba(255,255,255,0.1); border-bottom:none; font-weight:700; }
-        .cross-table .total-row .row-header { background:#333; color:#fff; }
-        .cross-table .total-col { background:rgba(102,126,234,0.06); font-weight:700; color:#667eea; }
-        .cross-table .total-row .total-col { background:#333; color:#fff; }
-        .batch-form { display:flex; flex-direction:column; gap:14px; }
-        .batch-form label { font-size:14px; color:#333; font-weight:500; }
-        .batch-form .radio-group { display:flex; gap:20px; margin:8px 0; }
-        .batch-form .radio-group label { font-weight:400; display:flex; align-items:center; gap:6px; cursor:pointer; }
-        .batch-form .condition-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-        .batch-form .condition-row select, .batch-form .condition-row input { padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
-        .preview-box { background:#f8f9ff; border-radius:10px; padding:14px; margin-top:10px; font-size:13px; color:#333; }
-        .preview-box .count { font-size:22px; font-weight:700; color:#667eea; }
-        .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:10px; font-size:14px; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
-        .toast.show { opacity:1; }
-        .toast.success { background:#52c41a; color:#fff; }
-        .toast.error { background:#ff4d4f; color:#fff; }
-        .toast.info { background:#667eea; color:#fff; }
-        .empty { text-align:center; padding:40px; color:#999; font-size:14px; }
+        .cross-table .zero { color:var(--gray-300); font-weight:400; }
+        .cross-table .total-row { background:var(--gray-800); color:var(--white); }
+        .cross-table .total-row td { color:var(--white); border-right:1px solid rgba(255,255,255,0.1); border-bottom:none; font-weight:700; }
+        .cross-table .total-row .row-header { background:var(--gray-800); color:var(--white); }
+        .cross-table .total-col { background:rgba(74,144,217,0.06); font-weight:700; color:var(--primary); }
+        .cross-table .total-row .total-col { background:var(--gray-800); color:var(--white); }
+
+        /* ===== 批量设置表单 ===== */
+        .batch-form { display:flex; flex-direction:column; gap:20px; }
+        .batch-form .form-section { display:flex; flex-direction:column; gap:8px; }
+        .batch-form .form-label {
+            font-size:14px; color:var(--gray-700); font-weight:600;
+            display:flex; align-items:center; gap:8px;
+        }
+        .batch-form .form-label .fa { color:var(--primary); width:18px; text-align:center; }
+        .batch-form .radio-group { display:flex; gap:24px; margin:4px 0; }
+        .batch-form .radio-group label {
+            font-weight:400; display:flex; align-items:center; gap:8px;
+            cursor:pointer; font-size:14px; color:var(--gray-600);
+            padding:8px 16px; border-radius:var(--radius-sm); border:1px solid var(--gray-200);
+            transition:all 0.2s;
+        }
+        .batch-form .radio-group label:has(input:checked) {
+            border-color:var(--primary); background:var(--primary-light); color:var(--primary); font-weight:600;
+        }
+        .batch-form .radio-group input[type="radio"] { accent-color:var(--primary); width:16px; height:16px; }
+        .batch-form .condition-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .batch-form .condition-row select,
+        .batch-form .condition-row input[type="text"] {
+            padding:9px 14px; border:1px solid var(--gray-200); border-radius:var(--radius-sm);
+            font-size:13px; color:var(--gray-700); background:var(--white);
+            transition:border-color 0.2s, box-shadow 0.2s; outline:none;
+        }
+        .batch-form .condition-row select { cursor:pointer; padding-right:32px; appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat; background-position:right 12px center;
+        }
+        .batch-form .condition-row select:focus,
+        .batch-form .condition-row input[type="text"]:focus {
+            border-color:var(--primary); box-shadow:0 0 0 3px rgba(74,144,217,0.12);
+        }
+        .batch-form .condition-row input[type="text"] { width:130px; }
+        .batch-form .condition-row .range-sep { color:var(--gray-400); font-size:14px; }
+
+        /* 预览盒 */
+        .preview-box {
+            background:var(--primary-light); border-radius:var(--radius-md);
+            padding:18px 20px; margin-top:12px; font-size:13px; color:var(--gray-700);
+            border:1px solid rgba(74,144,217,0.15); line-height:1.8;
+        }
+        .preview-box .count {
+            font-size:26px; font-weight:700; color:var(--primary); display:block;
+            margin-bottom:6px;
+        }
+
+        /* ===== Toast ===== */
+        .toast {
+            position:fixed; top:24px; left:50%; transform:translateX(-50%) translateY(-20px);
+            padding:13px 28px; border-radius:var(--radius-sm); font-size:14px; z-index:9999;
+            opacity:0; transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
+            pointer-events:none; box-shadow:var(--shadow-lg); font-weight:500;
+        }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+        .toast.success { background:var(--accent); color:var(--white); }
+        .toast.error { background:var(--danger); color:var(--white); }
+        .toast.info { background:var(--primary); color:var(--white); }
+
+        /* ===== 空状态 ===== */
+        .empty { text-align:center; padding:60px 20px; color:var(--gray-400); font-size:14px; }
+        .empty .fa { font-size:40px; margin-bottom:16px; display:block; color:var(--gray-300); }
+
+        /* ===== 卡片内操作栏 ===== */
+        .card-toolbar {
+            display:flex; justify-content:space-between; align-items:center;
+            margin-bottom:16px; flex-wrap:wrap; gap:10px;
+        }
+        .card-toolbar .card-title { margin:0; }
+
+        /* ===== 响应式 ===== */
+        @media (max-width:768px) {
+            .container { padding:16px 12px 30px; }
+            .header { padding:18px 16px; flex-direction:column; gap:12px; text-align:center; }
+            .header-left { flex-direction:column; gap:8px; }
+            .stats-grid-row1 { grid-template-columns:1fr; }
+            .stats-grid-row2 { grid-template-columns:repeat(3, 1fr); }
+            .filter-row { gap:8px; }
+            .filter-row select, .filter-row input[type="text"] { flex:1; min-width:0; }
+            .tabs { font-size:12px; }
+            .tab { padding:12px 8px; gap:4px; }
+            .batch-form .radio-group { flex-direction:column; gap:8px; }
+            .batch-form .condition-row { flex-direction:column; align-items:stretch; }
+            .batch-form .condition-row input[type="text"] { width:100%; }
+            .card { padding:16px; }
+            .table-wrap { font-size:12px; }
+            .table-wrap th, .table-wrap td { padding:10px 8px; }
+        }
+        @media (max-width:480px) {
+            .stats-grid-row2 { grid-template-columns:repeat(2, 1fr); }
+            .btn { padding:8px 12px; font-size:12px; }
+        }
     </style>
 </head>
 <body>
 
 <div id="app" style="display:none;">
     <div class="container">
+        <!-- 顶部栏 -->
         <div class="header">
-            <h1>🔒 春秋游报名管理</h1>
-            <span class="token-status">Token 验证：✅ 已通过</span>
+            <div class="header-left">
+                <div class="header-icon"><i class="fa fa-shield-halved"></i></div>
+                <div>
+                    <h1>春秋游报名管理</h1>
+                </div>
+            </div>
+            <span class="token-status"><i class="fa fa-circle-check"></i> Token 验证已通过</span>
         </div>
 
+        <!-- Tab 栏 -->
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('records')">📋 记录管理</div>
-            <div class="tab" onclick="switchTab('batch')">⚙️ 批量设置</div>
-            <div class="tab" onclick="switchTab('stats')">📊 统计看板</div>
+            <div class="tab active" onclick="switchTab('records')"><i class="fa fa-list-ul"></i> 记录管理</div>
+            <div class="tab" onclick="switchTab('batch')"><i class="fa fa-wand-magic-sparkles"></i> 批量设置</div>
+            <div class="tab" onclick="switchTab('stats')"><i class="fa fa-chart-pie"></i> 统计看板</div>
         </div>
 
         <!-- Tab1：记录管理 -->
         <div id="tab-records" class="tab-content active">
             <div class="card">
-                <div class="card-title">筛选条件</div>
+                <div class="card-title"><i class="fa fa-filter"></i> 筛选条件</div>
                 <div class="filter-row">
-                    <select id="filterRoute"><option value="">全部线路</option><option>江西庐山 3天2晚</option><option>福建厦门3天2晚。</option><option>上海2天1晚。</option><option>泰顺苍南2天1晚</option><option>宁海1天</option><option>台州椒江1天</option></select>
-                    <select id="filterMonth"><option value="">全部月份</option><option>6月</option><option>7月</option><option>8月</option></select>
+                    <select id="filterRoute">
+                        <option value="">全部线路</option>
+                        <option>江西庐山 3天2晚</option>
+                        <option>福建厦门3天2晚。</option>
+                        <option>上海2天1晚。</option>
+                        <option>泰顺苍南2天1晚</option>
+                        <option>宁海1天</option>
+                        <option>台州椒江1天</option>
+                    </select>
+                    <select id="filterMonth">
+                        <option value="">全部月份</option>
+                        <option>6月</option><option>7月</option><option>8月</option>
+                    </select>
                     <input type="text" id="filterTeller" placeholder="柜员号">
-                    <button class="btn btn-primary" onclick="loadRecords(1)">搜索</button>
-                    <a class="btn btn-outline" id="exportBtn" href="#" download>📥 导出CSV</a>
+                    <button class="btn btn-primary" onclick="loadRecords(1)"><i class="fa fa-magnifying-glass"></i> 搜索</button>
+                    <a class="btn btn-outline" id="exportBtn" href="#" download><i class="fa fa-file-csv"></i> 导出 CSV</a>
                 </div>
             </div>
 
             <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                    <div class="card-title" style="margin:0;">报名记录</div>
-                    <div>
-                        <button class="btn btn-success btn-sm" onclick="batchUpdate('是')">批量允许修改</button>
-                        <button class="btn btn-danger btn-sm" onclick="batchUpdate('否')">批量禁止修改</button>
+                <div class="card-toolbar">
+                    <div class="card-title"><i class="fa fa-table"></i> 报名记录</div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-success btn-sm" onclick="batchUpdate('是')"><i class="fa fa-check"></i> 批量允许</button>
+                        <button class="btn btn-danger btn-sm" onclick="batchUpdate('否')"><i class="fa fa-ban"></i> 批量禁止</button>
                     </div>
                 </div>
                 <div class="table-wrap">
                     <table>
                         <thead><tr>
-                            <th><input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
-                            <th>柜员号</th><th>姓名</th><th>ygxs</th><th>线路</th><th>月份</th><th>家属</th><th>允许修改</th><th>操作</th>
+                            <th style="width:40px; text-align:center;"><input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                            <th><i class="fa fa-id-card" style="margin-right:4px;"></i>柜员号</th>
+                            <th><i class="fa fa-user" style="margin-right:4px;"></i>姓名</th>
+                            <th>ygxs</th>
+                            <th><i class="fa fa-route" style="margin-right:4px;"></i>线路</th>
+                            <th><i class="fa fa-calendar" style="margin-right:4px;"></i>月份</th>
+                            <th class="num-col"><i class="fa fa-users" style="margin-right:4px;"></i>家属</th>
+                            <th><i class="fa fa-lock" style="margin-right:4px;"></i>允许修改</th>
+                            <th class="action-col">操作</th>
                         </tr></thead>
                         <tbody id="recordsBody"></tbody>
                     </table>
                 </div>
                 <div class="pagination" id="pagination"></div>
-                <div class="empty" id="emptyRecords" style="display:none;">暂无记录</div>
+                <div class="empty" id="emptyRecords" style="display:none;">
+                    <i class="fa fa-inbox"></i>
+                    <div>暂无记录</div>
+                </div>
             </div>
         </div>
 
         <!-- Tab2：批量设置 -->
         <div id="tab-batch" class="tab-content">
             <div class="card">
-                <div class="card-title">按条件一键设置"是否允许修改"</div>
+                <div class="card-title"><i class="fa fa-wand-magic-sparkles"></i> 按条件一键设置"是否允许修改"</div>
                 <div class="batch-form">
-                    <div>
-                        <label>设置值：</label>
+                    <div class="form-section">
+                        <div class="form-label"><i class="fa fa-sliders"></i> 设置值</div>
                         <div class="radio-group">
-                            <label><input type="radio" name="batchAllow" value="是"> 允许修改</label>
-                            <label><input type="radio" name="batchAllow" value="否" checked> 禁止修改</label>
+                            <label><input type="radio" name="batchAllow" value="是"> <i class="fa fa-check-circle" style="color:var(--accent);"></i> 允许修改</label>
+                            <label><input type="radio" name="batchAllow" value="否" checked> <i class="fa fa-ban" style="color:var(--danger);"></i> 禁止修改</label>
                         </div>
                     </div>
-                    <div>
-                        <label>适用条件（至少填一个）：</label>
+                    <div class="form-section">
+                        <div class="form-label"><i class="fa fa-filter"></i> 适用条件（至少填一个）</div>
                         <div class="condition-row">
-                            <select id="batchRoute"><option value="">全部线路</option><option>江西庐山 3天2晚</option><option>福建厦门3天2晚。</option><option>上海2天1晚。</option><option>泰顺苍南2天1晚</option><option>宁海1天</option><option>台州椒江1天</option></select>
-                            <select id="batchMonth"><option value="">全部月份</option><option>6月</option><option>7月</option><option>8月</option></select>
+                            <select id="batchRoute">
+                                <option value="">全部线路</option>
+                                <option>江西庐山 3天2晚</option>
+                                <option>福建厦门3天2晚。</option>
+                                <option>上海2天1晚。</option>
+                                <option>泰顺苍南2天1晚</option>
+                                <option>宁海1天</option>
+                                <option>台州椒江1天</option>
+                            </select>
+                            <select id="batchMonth">
+                                <option value="">全部月份</option>
+                                <option>6月</option><option>7月</option><option>8月</option>
+                            </select>
                         </div>
-                        <div class="condition-row" style="margin-top:8px;">
-                            <input type="text" id="batchTellerStart" placeholder="柜员号起始" style="width:120px;">
-                            <span>~</span>
-                            <input type="text" id="batchTellerEnd" placeholder="柜员号结束" style="width:120px;">
+                        <div class="condition-row" style="margin-top:10px;">
+                            <input type="text" id="batchTellerStart" placeholder="柜员号起始" style="width:130px;">
+                            <span class="range-sep">~</span>
+                            <input type="text" id="batchTellerEnd" placeholder="柜员号结束" style="width:130px;">
                         </div>
                     </div>
                     <div>
-                        <button class="btn btn-primary" onclick="previewBatch()">🔍 预览影响的记录</button>
+                        <button class="btn btn-primary" onclick="previewBatch()"><i class="fa fa-eye"></i> 预览影响的记录</button>
                     </div>
                     <div class="preview-box" id="previewBox" style="display:none;"></div>
                     <div>
-                        <button class="btn btn-danger" id="confirmBatchBtn" style="display:none;" onclick="confirmBatch()">⚠️ 确认一键设置</button>
+                        <button class="btn btn-danger btn-lg" id="confirmBatchBtn" style="display:none;" onclick="confirmBatch()">
+                            <i class="fa fa-triangle-exclamation"></i> 确认一键设置
+                        </button>
                     </div>
                 </div>
             </div>
@@ -195,18 +496,21 @@
         <div id="tab-stats" class="tab-content">
             <div class="stats-grid" id="statsCards"></div>
             <div class="card">
-                <div class="card-title">线路 × 月份 报名分布</div>
+                <div class="card-title"><i class="fa fa-table-cells-large"></i> 线路 × 月份 报名分布</div>
                 <div class="table-wrap" id="crossTableWrap"></div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- 无权限提示 -->
 <div class="unauthorized" id="unauthorized">
-    <h2>🔒 需要访问权限</h2>
+    <i class="fa fa-lock" style="font-size:48px; color:var(--gray-300); margin-bottom:16px; display:block;"></i>
+    <h2>需要访问权限</h2>
     <p style="margin-top:12px;">请在 URL 中添加 <code>?token=你的密钥</code> 参数</p>
 </div>
 
+<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
@@ -216,7 +520,7 @@
     // 页面初始化
     if (!TOKEN) {
         document.getElementById('app').style.display = 'none';
-        document.getElementById('unauthorized').style.display = 'block';
+        document.getElementById('unauthorized').style.display = 'flex';
     } else {
         document.getElementById('app').style.display = 'block';
         document.getElementById('unauthorized').style.display = 'none';
@@ -242,7 +546,7 @@
 
     function showToast(msg, type) {
         var t = document.getElementById('toast');
-        t.textContent = msg;
+        t.innerHTML = (type === 'success' ? '<i class="fa fa-circle-check"></i> ' : type === 'error' ? '<i class="fa fa-circle-xmark"></i> ' : '<i class="fa fa-circle-info"></i> ') + msg;
         t.className = 'toast ' + (type || 'info') + ' show';
         setTimeout(function() { t.classList.remove('show'); }, 3000);
     }
@@ -278,22 +582,28 @@
         var empty = document.getElementById('emptyRecords');
         if (allRecords.length === 0) {
             tbody.innerHTML = '';
-            empty.style.display = 'block';
+            empty.style.display = 'flex';
             return;
         }
         empty.style.display = 'none';
         tbody.innerHTML = allRecords.map(function(r) {
             var f = r.fields;
+            var allowEdit = f['是否允许修改'] || '是';
+            var isDenied = allowEdit === '否';
             return '<tr>' +
-                '<td><input type="checkbox" class="checkbox" data-id="' + r.id + '"></td>' +
+                '<td style="text-align:center;"><input type="checkbox" class="checkbox" data-id="' + r.id + '"></td>' +
                 '<td>' + (f['柜员号'] || '') + '</td>' +
                 '<td>' + (f['姓名'] || '') + '</td>' +
                 '<td>' + (f['ygxs'] || '') + '</td>' +
                 '<td>' + (f['旅行线路'] || '') + '</td>' +
                 '<td>' + (f['月份'] || '') + '</td>' +
-                '<td>' + (f['家庭成员人数'] || '0') + '人</td>' +
-                '<td class="' + (f['是否允许修改'] === '否' ? 'badge-no' : 'badge-yes') + '">' + (f['是否允许修改'] || '是') + '</td>' +
-                '<td><button class="btn btn-outline btn-sm" onclick="toggleAllow(\'' + r.id + '\',\'' + (f['是否允许修改'] === '否' ? '是' : '否') + '\')">' + (f['是否允许修改'] === '否' ? '允许' : '禁止') + '</button></td>' +
+                '<td class="num-col">' + (f['家庭成员人数'] || '0') + '人</td>' +
+                '<td style="text-align:center;"><span class="badge ' + (isDenied ? 'badge-no' : 'badge-yes') + '">' +
+                    (isDenied ? '<i class="fa fa-ban"></i> 禁止' : '<i class="fa fa-check-circle"></i> 允许') +
+                '</span></td>' +
+                '<td class="action-col"><button class="btn btn-outline btn-sm" onclick="toggleAllow(\'' + r.id + '\',\'' + (isDenied ? '是' : '否') + '\')">' +
+                    (isDenied ? '<i class="fa fa-unlock"></i> 允许' : '<i class="fa fa-lock"></i> 禁止') +
+                '</button></td>' +
             '</tr>';
         }).join('');
     }
@@ -303,9 +613,17 @@
         var wrap = document.getElementById('pagination');
         if (totalPages <= 1) { wrap.innerHTML = ''; return; }
         var html = '';
+        // 上一页
+        if (page > 1) html += '<button onclick="loadRecords(' + (page-1) + ')"><i class="fa fa-chevron-left"></i></button>';
         for (var i = 1; i <= totalPages; i++) {
+            if (totalPages > 7 && Math.abs(i - page) > 2 && i !== 1 && i !== totalPages) {
+                if (i === 2 || i === totalPages - 1) html += '<span style="padding:0 4px;color:var(--gray-400);">...</span>';
+                continue;
+            }
             html += '<button class="' + (i === page ? 'active' : '') + '" onclick="loadRecords(' + i + ')">' + i + '</button>';
         }
+        // 下一页
+        if (page < totalPages) html += '<button onclick="loadRecords(' + (page+1) + ')"><i class="fa fa-chevron-right"></i></button>';
         wrap.innerHTML = html;
     }
 
@@ -382,7 +700,6 @@
             showToast('请至少填写一个筛选条件', 'error'); return;
         }
 
-        // 先查询匹配的记录数
         var queryParams = '?token=' + encodeURIComponent(TOKEN);
         if (route) queryParams += '&route=' + encodeURIComponent(route);
         if (month) queryParams += '&month=' + encodeURIComponent(month);
@@ -392,7 +709,6 @@
             .then(function(data) {
                 if (data.error) { showToast(data.error, 'error'); return; }
                 var records = data.records || [];
-                // 前端再过滤柜员号范围
                 if (start || end) {
                     var s = parseInt(start) || 0;
                     var e = parseInt(end) || 9999999;
@@ -404,9 +720,12 @@
                 batchMatchedIds = records.map(function(r) { return r.id; });
                 var box = document.getElementById('previewBox');
                 box.style.display = 'block';
-                box.innerHTML = '📊 符合条件的记录：<span class="count">' + records.length + '</span> 条<br><br>' +
-                    (records.length > 0 ? records.slice(0, 5).map(function(r) { return r.fields['柜员号'] + ' ' + (r.fields['姓名'] || ''); }).join('<br>') + (records.length > 5 ? '<br>...' : '') : '暂无匹配记录');
-                document.getElementById('confirmBatchBtn').style.display = records.length > 0 ? 'inline-block' : 'none';
+                box.innerHTML = '<span class="count">' + records.length + '</span>' +
+                    '条记录符合条件' +
+                    (records.length > 0 ? '<br><br><span style="font-size:12px;color:var(--gray-500);">' +
+                        records.slice(0, 5).map(function(r) { return '<i class="fa fa-user" style="margin-right:4px;"></i>' + r.fields['柜员号'] + ' ' + (r.fields['姓名'] || '') + ' — ' + (r.fields['旅行线路'] || '') ; }).join('<br>') +
+                        (records.length > 5 ? '<br>...' : '') + '</span>' : '');
+                document.getElementById('confirmBatchBtn').style.display = records.length > 0 ? 'inline-flex' : 'none';
             })
             .catch(function(err) { showToast('预览失败：' + err.message, 'error'); });
     }
@@ -456,9 +775,9 @@
         var routeOrder = ['江西庐山', '福建厦门', '上海', '泰顺', '宁海', '台州'];
         // 第一行：总报名人数 + 允许修改 + 禁止修改
         var html = '<div class="stats-grid stats-grid-row1">';
-        html += '<div class="stats-card"><div class="icon">👥</div><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
-        html += '<div class="stats-card allow"><div class="icon">✅</div><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
-        html += '<div class="stats-card deny"><div class="icon">⛔</div><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
+        html += '<div class="stats-card"><div class="icon"><i class="fa fa-users"></i></div><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
+        html += '<div class="stats-card allow"><div class="icon"><i class="fa fa-unlock"></i></div><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
+        html += '<div class="stats-card deny"><div class="icon"><i class="fa fa-lock"></i></div><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
         html += '</div>';
         // 第二行：6条线路
         var routes = Object.keys(data.routeCount || {}).sort(function(a, b) {
@@ -468,14 +787,13 @@
         });
         html += '<div class="stats-grid stats-grid-row2">';
         routes.forEach(function(r) {
-            html += '<div class="stats-card route"><div class="icon">🚌</div><div class="num">' + data.routeCount[r] + '</div><div class="label">' + r + '</div></div>';
+            html += '<div class="stats-card route"><div class="icon"><i class="fa fa-bus"></i></div><div class="num">' + data.routeCount[r] + '</div><div class="label">' + r + '</div></div>';
         });
         html += '</div>';
         document.getElementById('statsCards').innerHTML = html;
     }
 
     function renderCrossTable(data) {
-        // 线路按序号排序：1.江西庐山 2.福建厦门 3.上海 4.泰顺 5.宁海 6.台州
         var routeOrder = ['江西庐山', '福建厦门', '上海', '泰顺', '宁海', '台州'];
         var routes = (Object.keys(data.crossTable || {})).sort(function(a, b) {
             var ia = routeOrder.findIndex(function(k) { return a.indexOf(k) !== -1; });
@@ -489,11 +807,11 @@
         var monthList = Object.keys(months).sort();
 
         if (routes.length === 0 || monthList.length === 0) {
-            document.getElementById('crossTableWrap').innerHTML = '<div class="empty">暂无数据</div>';
+            document.getElementById('crossTableWrap').innerHTML = '<div class="empty"><i class="fa fa-chart-pie"></i><div>暂无数据</div></div>';
             return;
         }
 
-        var html = '<table class="cross-table"><thead><tr><th style="text-align:left;padding-left:14px;">线路 ＼ 月份</th>';
+        var html = '<table class="cross-table"><thead><tr><th style="text-align:left;padding-left:16px;"><i class="fa fa-arrow-right-arrow-left" style="margin-right:6px;"></i>线路 ＼ 月份</th>';
         monthList.forEach(function(m) { html += '<th>' + m + '</th>'; });
         html += '<th class="total-col">合计</th></tr></thead><tbody>';
 
@@ -502,7 +820,7 @@
         var grandTotal = 0;
 
         routes.forEach(function(r) {
-            html += '<tr><td class="row-header">' + r + '</td>';
+            html += '<tr><td class="row-header" title="' + r + '">' + r + '</td>';
             var rowTotal = 0;
             monthList.forEach(function(m) {
                 var c = (data.crossTable[r] && data.crossTable[r][m]) || 0;
@@ -515,7 +833,7 @@
         });
 
         // 合计行
-        html += '<tr class="total-row"><td class="row-header">合计</td>';
+        html += '<tr class="total-row"><td class="row-header"><i class="fa fa-calculator" style="margin-right:6px;"></i>合计</td>';
         monthList.forEach(function(m) {
             html += '<td>' + colTotals[m] + '人</td>';
         });
