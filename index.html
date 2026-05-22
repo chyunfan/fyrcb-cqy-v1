@@ -185,41 +185,34 @@
         }
         
         .form-label {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: block;
             font-size: 14px;
             font-weight: 500;
             color: #333;
             margin-bottom: 8px;
         }
 
-        .form-label .label-text {
+        .attachment-banner {
             display: flex;
             align-items: center;
-            gap: 4px;
-        }
-
-        .form-label .attachment-inline-link {
-            font-size: 12px;
-            font-weight: 600;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 50%, #ff6b6b 100%);
+            border-radius: 12px;
             color: #fff;
+            font-size: 15px;
+            font-weight: 700;
             text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            padding: 4px 12px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #ff7eb3 0%, #ff758c 100%);
+            box-shadow: 0 4px 15px rgba(255,118,140,0.45);
+            letter-spacing: 1px;
             transition: transform 0.15s, box-shadow 0.15s;
-            white-space: nowrap;
-            box-shadow: 0 2px 8px rgba(255,118,140,0.4);
-            letter-spacing: 0.5px;
         }
 
-        .form-label .attachment-inline-link:active {
-            transform: scale(0.95);
-            box-shadow: 0 1px 4px rgba(255,118,140,0.3);
+        .attachment-banner:active {
+            transform: scale(0.97);
+            box-shadow: 0 2px 8px rgba(255,118,140,0.35);
         }
         
         .form-label .required {
@@ -454,10 +447,13 @@
             <div id="formSection" class="hidden">
                 <form id="travelForm">
                     <div class="form-group">
-                        <label class="form-label">
-                            <span class="label-text">旅行线路 <span class="required">*</span></span>
-                            <a href="attachments.html" class="attachment-inline-link">📎 查看附件</a>
-                        </label>
+                        <a href="attachments.html" class="attachment-banner">
+                            📎 查看各线路附件
+                        </a>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">旅行线路 <span class="required">*</span></label>
                         <div class="radio-group" id="routeGroup">
                             <div class="radio-item">
                                 <input type="radio" name="route" id="route1" value="1.江西庐山 3天2晚">
