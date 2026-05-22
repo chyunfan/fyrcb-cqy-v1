@@ -41,7 +41,9 @@
         .pagination { display:flex; justify-content:center; gap:8px; margin-top:14px; }
         .pagination button { padding:6px 12px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer; font-size:13px; }
         .pagination button.active { background:#667eea; color:#fff; border-color:#667eea; }
-        .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+        .stats-grid { display:grid; gap:14px; margin-bottom:14px; }
+        .stats-grid-row1 { grid-template-columns:repeat(3, 1fr); }
+        .stats-grid-row2 { grid-template-columns:repeat(6, 1fr); }
         .stats-card {
             background:#fff; border-radius:14px; padding:18px 16px;
             box-shadow:0 2px 12px rgba(102,126,234,0.1);
@@ -451,22 +453,24 @@
     }
 
     function renderStatsCards(data) {
-        var html = '';
-        // 总人数
-        html += '<div class="stats-card"><div class="icon">👥</div><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
-        // 各线路：按固定顺序排序
         var routeOrder = ['江西庐山', '福建厦门', '上海', '泰顺', '宁海', '台州'];
+        // 第一行：总报名人数 + 允许修改 + 禁止修改
+        var html = '<div class="stats-grid stats-grid-row1">';
+        html += '<div class="stats-card"><div class="icon">👥</div><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
+        html += '<div class="stats-card allow"><div class="icon">✅</div><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
+        html += '<div class="stats-card deny"><div class="icon">⛔</div><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
+        html += '</div>';
+        // 第二行：6条线路
         var routes = Object.keys(data.routeCount || {}).sort(function(a, b) {
             var ia = routeOrder.findIndex(function(k) { return a.indexOf(k) !== -1; });
             var ib = routeOrder.findIndex(function(k) { return b.indexOf(k) !== -1; });
             return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
         });
-        routes.slice(0, 3).forEach(function(r) {
+        html += '<div class="stats-grid stats-grid-row2">';
+        routes.forEach(function(r) {
             html += '<div class="stats-card route"><div class="icon">🚌</div><div class="num">' + data.routeCount[r] + '</div><div class="label">' + r + '</div></div>';
         });
-        // 修改权限
-        html += '<div class="stats-card allow"><div class="icon">✅</div><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
-        html += '<div class="stats-card deny"><div class="icon">⛔</div><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
+        html += '</div>';
         document.getElementById('statsCards').innerHTML = html;
     }
 
