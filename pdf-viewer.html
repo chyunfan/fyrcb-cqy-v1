@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PDF预览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .back-btn {
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+
+        .download-btn {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .download-btn:active {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e0e0e0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .page-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .page-item {
+            margin: 16px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .page-label {
+            padding: 8px 16px;
+            background: #f8f8f8;
+            font-size: 12px;
+            color: #999;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .page-canvas {
+            width: 100%;
+            display: block;
+        }
+
+        .error-msg {
+            text-align: center;
+            padding: 60px 20px;
+            color: #ff4d4f;
+        }
+
+        .error-msg a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .control-btn {
+            flex: 1;
+            max-width: 200px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-prev {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+
+        .page-info {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #666;
+            min-width: 60px;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="javascript:history.back()" class="back-btn">← 返回</a>
+        <div class="header-title" id="pdfTitle">PDF预览</div>
+        <a href="" class="download-btn" id="downloadBtn" download>📥 下载</a>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div>正在加载PDF...</div>
+    </div>
+
+    <div class="error-msg" id="errorMsg" style="display:none;"></div>
+
+    <div class="page-container" id="pageContainer"></div>
+
+    <div class="controls" id="controls" style="display:none;">
+        <button class="control-btn btn-prev" id="prevBtn" onclick="prevPage()">↑ 上一页</button>
+        <div class="page-info" id="pageInfo"></div>
+        <button class="control-btn btn-next" id="nextBtn" onclick="nextPage()">↓ 下一页</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+    <script>
+        let pdfDoc = null;
+        let currentPage = 1;
+        let totalPages = 0;
+        let scale = 1.5;
+        const container = document.getElementById('pageContainer');
+        const loading = document.getElementById('loading');
+        const errorMsg = document.getElementById('errorMsg');
+        const controls = document.getElementById('controls');
+
+        // 获取URL参数
+        function getQueryParam(name) {
+            const params = new URLSearchParams(window.location.search);
+            return params.get(name);
+        }
+
+        // 初始化PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+
+        // 加载PDF
+        async function loadPDF() {
+            const file = getQueryParam('file');
+            if (!file) {
+                showError('未指定PDF文件');
+                return;
+            }
+
+            // 设置标题和下载链接
+            const fileName = decodeURIComponent(file);
+            document.getElementById('pdfTitle').textContent = fileName.replace('.pdf', '');
+            document.getElementById('downloadBtn').href = 'Route/pdf/' + encodeURIComponent(fileName);
+
+            try {
+                const url = 'Route/pdf/' + encodeURIComponent(fileName);
+                const loadingTask = pdfjsLib.getDocument(url);
+                pdfDoc = await loadingTask.promise;
+                totalPages = pdfDoc.numPages;
+
+                loading.style.display = 'none';
+                controls.style.display = 'flex';
+                document.getElementById('pageInfo').textContent = '1 / ' + totalPages;
+
+                // 渲染第一页
+                await renderPage(currentPage);
+
+                // 预加载后续页面
+                preloadPages();
+
+            } catch (err) {
+                console.error('PDF加载失败:', err);
+                showError('PDF加载失败，<a href="Route/pdf/' + encodeURIComponent(fileName) + '" download>点击此处下载</a>');
+            }
+        }
+
+        // 渲染指定页面
+        async function renderPage(pageNum) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: scale });
+
+            const pageItem = document.createElement('div');
+            pageItem.className = 'page-item';
+            pageItem.id = 'page-' + pageNum;
+
+            const label = document.createElement('div');
+            label.className = 'page-label';
+            label.textContent = '第 ' + pageNum + ' 页 / 共 ' + totalPages + ' 页';
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'page-canvas';
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            pageItem.appendChild(label);
+            pageItem.appendChild(canvas);
+            container.appendChild(pageItem);
+
+            const context = canvas.getContext('2d');
+            await page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise;
+        }
+
+        // 预加载后续页面
+        async function preloadPages() {
+            for (let i = 2; i <= totalPages; i++) {
+                await renderPage(i);
+            }
+        }
+
+        // 上一页
+        function prevPage() {
+            if (currentPage <= 1) return;
+            currentPage--;
+            scrollToPage(currentPage);
+        }
+
+        // 下一页
+        function nextPage() {
+            if (currentPage >= totalPages) return;
+            currentPage++;
+            scrollToPage(currentPage);
+        }
+
+        // 滚动到指定页面
+        function scrollToPage(pageNum) {
+            const pageEl = document.getElementById('page-' + pageNum);
+            if (pageEl) {
+                pageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            currentPage = pageNum;
+            document.getElementById('pageInfo').textContent = currentPage + ' / ' + totalPages;
+        }
+
+        // 显示错误
+        function showError(msg) {
+            loading.style.display = 'none';
+            errorMsg.style.display = 'block';
+            errorMsg.innerHTML = msg;
+        }
+
+        // 页面加载完成后执行
+        loadPDF();
+    </script>
+</body>
+</html>
