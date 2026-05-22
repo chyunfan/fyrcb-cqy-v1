@@ -486,10 +486,8 @@
             
             <!-- 表单区域（验证成功后显示） -->
             <div id="formSection" class="hidden">
-                <form id="travelForm">
-                    <div class="readonly-notice" id="readonlyNotice">
-                        ⚠️ 当前不允许修改报名信息，如需调整请联系管理员
-                    </div>
+                    <form id="travelForm">
+                        <div class="readonly-notice" id="readonlyNotice"></div>
                     <div class="form-group">
                         <a href="attachments.html" class="attachment-banner">
                         📎 查看各线路附件
@@ -751,7 +749,7 @@
                         if (!data.existingRecord.allowEdit) {
                             currentUser.allowEdit = false;
                             showToast('您已报名，且不允许修改', 'error');
-                            setTimeout(function() { disableForm(); }, 500);
+                            setTimeout(function() { disableForm('admin'); }, 500);
                         } else {
                             showToast('已加载您的报名信息，可修改后重新提交', 'success');
                         }
@@ -796,7 +794,7 @@
                             currentUser.allowEdit = false;
                             showToast('您已报名，且不允许修改', 'error');
                             setTimeout(function() {
-                                disableForm();
+                                disableForm('admin');
                             }, 500);
                         } else {
                             showToast('已加载您的报名信息，可修改后重新提交', 'success');
@@ -867,7 +865,8 @@
             }
         }
 
-        function disableForm() {
+        function disableForm(reason) {
+            // reason: 'admin' = 管理员禁止修改, 'submitted' = 用户已提交
             var formSection = document.getElementById('formSection');
             if (formSection.classList.contains('readonly-mode')) return;
 
@@ -878,7 +877,13 @@
             overlay.id = 'readonlyOverlay';
             document.getElementById('formFieldsWrapper').appendChild(overlay);
 
-            document.getElementById('readonlyNotice').classList.add('show');
+            var notice = document.getElementById('readonlyNotice');
+            if (reason === 'admin') {
+                notice.textContent = '⚠️ 当前不允许修改报名信息，如需调整请联系管理员';
+            } else {
+                notice.textContent = '✅ 已提交，如需修改请输入柜员号并确认';
+            }
+            notice.classList.add('show');
         }
 
         // 提交表单
@@ -936,7 +941,7 @@
                     currentUser.recordId = 'submitted';
                 }
 
-                setTimeout(function() { disableForm(); }, 500);
+                setTimeout(function() { disableForm('submitted'); }, 500);
             })
             .catch(function(err) {
                 submitBtn.disabled = false;
