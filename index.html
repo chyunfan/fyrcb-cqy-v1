@@ -185,11 +185,38 @@
         }
         
         .form-label {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             font-size: 14px;
             font-weight: 500;
             color: #333;
             margin-bottom: 8px;
+        }
+
+        .form-label .label-text {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-label .attachment-inline-link {
+            font-size: 13px;
+            font-weight: 400;
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(102,126,234,0.08);
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .form-label .attachment-inline-link:active {
+            background: rgba(102,126,234,0.2);
         }
         
         .form-label .required {
@@ -394,7 +421,6 @@
         <div class="header">
             <h1>🚌 春秋游-预报名</h1>
             <p>请先输入柜员号，再选择出行计划</p>
-            <a href="attachments.html" class="attachment-link">📎 查看各线路附件</a>
         </div>
         
         <!-- 柜员号输入区域 -->
@@ -425,7 +451,10 @@
             <div id="formSection" class="hidden">
                 <form id="travelForm">
                     <div class="form-group">
-                        <label class="form-label">旅行线路 <span class="required">*</span></label>
+                        <label class="form-label">
+                            <span class="label-text">旅行线路 <span class="required">*</span></span>
+                            <a href="attachments.html" class="attachment-inline-link">📎 查看附件</a>
+                        </label>
                         <div class="radio-group" id="routeGroup">
                             <div class="radio-item">
                                 <input type="radio" name="route" id="route1" value="1.江西庐山 3天2晚">
