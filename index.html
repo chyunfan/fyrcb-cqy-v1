@@ -417,6 +417,40 @@
             padding: 16px;
             margin-top: 10px;
         }
+
+        /* 只读模式 */
+        #formSection {
+            position: relative;
+        }
+
+        #formSection.readonly-mode .submit-btn {
+            display: none;
+        }
+
+        .readonly-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 10;
+            cursor: not-allowed;
+            background: rgba(255,255,255,0.35);
+            border-radius: 0 0 20px 20px;
+        }
+
+        .readonly-notice {
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 18px;
+            color: #fa8c16;
+            font-size: 13px;
+            display: none;
+            line-height: 1.6;
+        }
+
+        .readonly-notice.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -453,6 +487,9 @@
             <!-- 表单区域（验证成功后显示） -->
             <div id="formSection" class="hidden">
                 <form id="travelForm">
+                    <div class="readonly-notice" id="readonlyNotice">
+                        ⚠️ 当前不允许修改报名信息，如需调整请联系管理员
+                    </div>
                     <div class="form-group">
                         <a href="attachments.html" class="attachment-banner">
                             📎 查看各线路附件
@@ -686,12 +723,12 @@
                     // 优先使用已返回的报名记录直接回显（避免重复请求）
                     if (data.existingRecord) {
                         currentUser.recordId = data.existingRecord.id;
+                        fillForm(data.existingRecord.fields);
                         if (!data.existingRecord.allowEdit) {
                             currentUser.allowEdit = false;
                             showToast('您已报名，且不允许修改', 'error');
                             setTimeout(function() { disableForm(); }, 500);
                         } else {
-                            fillForm(data.existingRecord.fields);
                             showToast('已加载您的报名信息，可修改后重新提交', 'success');
                         }
                     } else {
@@ -727,6 +764,7 @@
                     if (data.records && data.records.length > 0) {
                         var record = data.records[0];
                         currentUser.recordId = record.id;
+                        fillForm(record.fields);
                         // 检查是否允许修改
                         if (record.fields['是否允许修改'] === '否') {
                             currentUser.allowEdit = false;
@@ -735,8 +773,6 @@
                                 disableForm();
                             }, 500);
                         } else {
-                            // 回显已填数据
-                            fillForm(record.fields);
                             showToast('已加载您的报名信息，可修改后重新提交', 'success');
                         }
                     }
@@ -806,10 +842,17 @@
         }
 
         function disableForm() {
-            var elements = document.querySelectorAll('#travelForm input, #travelForm textarea, #travelForm button');
-            for (var i = 0; i < elements.length; i++) {
-                elements[i].disabled = true;
-            }
+            var formSection = document.getElementById('formSection');
+            if (formSection.classList.contains('readonly-mode')) return;
+
+            formSection.classList.add('readonly-mode');
+
+            var overlay = document.createElement('div');
+            overlay.className = 'readonly-overlay';
+            overlay.id = 'readonlyOverlay';
+            formSection.appendChild(overlay);
+
+            document.getElementById('readonlyNotice').classList.add('show');
         }
 
         // 提交表单
