@@ -1,0 +1,13 @@
+{
+  "name": "chunqiuyou-signup",
+  "version": "1.0.0",
+  "description": "春秋游预报名系统（Supabase 版）",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
