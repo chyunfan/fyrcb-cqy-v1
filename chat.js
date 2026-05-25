@@ -113,6 +113,16 @@ function processUserInput(msg) {
         return;
     }
 
+    // 优先级0.8：查看特定路线附件（"看一下厦门""看看上海"）
+    const lower = msg.toLowerCase();
+    if ((lower.includes('看一下') || lower.includes('看看') || lower.includes('看下')) && matchRouteKeyword(msg)) {
+        const route = matchRouteKeyword(msg);
+        isProcessing = false;
+        setInputDisabled(false);
+        showAttachment(route);
+        return;
+    }
+
     // 优先级1：查看附件关键词（已收紧：必须明确表达查看附件意图）
     if (matchAttachmentKeyword(msg)) {
         const route = matchRouteKeyword(msg);
