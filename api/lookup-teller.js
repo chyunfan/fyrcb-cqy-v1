@@ -1,9 +1,8 @@
-// 合并查询：根据柜员号同时查询 tell_info 和 cqy_q1
+// 查询柜员信息 + 报名记录（单表 cqy_q1）
 // GET /api/lookup-teller?tellerNumber=xxxxx
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
 const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
 
-const TELL_INFO_TABLE = 'tell_info';
 const CQY_Q1_TABLE = 'cqy_q1';
 
 module.exports = async (req, res) => {
@@ -28,57 +27,46 @@ module.exports = async (req, res) => {
         const num = parseInt(tellerNumber, 10);
         const baseUrl = 'https://api.airtable.com/v0/' + AIRTABLE_BASE_ID;
 
-        // 并行查询 tell_info 和 cqy_q1
-        const [tellResp, cqyResp] = await Promise.all([
-            fetch(baseUrl + '/' + encodeURIComponent(TELL_INFO_TABLE) + '?filterByFormula=' + encodeURIComponent('{柜员号}=' + num), {
-                headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN }
-            }),
-            fetch(baseUrl + '/' + encodeURIComponent(CQY_Q1_TABLE) + '?filterByFormula=' + encodeURIComponent('{柜员号}=' + num), {
-                headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN }
-            })
-        ]);
+        // 只查 cqy_q1（843 人已预填）
+        const cqyResp = await fetch(
+            baseUrl + '/' + encodeURIComponent(CQY_Q1_TABLE) +
+            '?filterByFormula=' + encodeURIComponent('{柜员号}=' + num),
+            { headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN } }
+        );
 
-        const tellData = await tellResp.json();
         const cqyData = await cqyResp.json();
-
-        if (!tellResp.ok) {
-            throw new Error(tellData.error && tellData.error.message || '查询 tell_info 失败');
-        }
 
         if (!cqyResp.ok) {
             throw new Error(cqyData.error && cqyData.error.message || '查询 cqy_q1 失败');
         }
 
-        // tell_info 结果
-        let result = {
-            tellerNumber: tellerNumber,
-            userName: '',
-            ygxs: '',
-            existingRecord: null
-        };
-
-        if (tellData.records && tellData.records.length > 0) {
-            const fields = tellData.records[0].fields;
-            result.userName = fields['姓名'] || '';
-            result.ygxs = fields['ygxs'] || '';
-        } else {
+        if (!cqyData.records || cqyData.records.length === 0) {
             return res.status(404).json({ error: '未找到该柜员号，请检查后重试' });
         }
 
-        // cqy_q1 结果
-        if (cqyData.records && cqyData.records.length > 0) {
-            const record = cqyData.records[0];
+        const record = cqyData.records[0];
+        const fields = record.fields;
+
+        let result = {
+            tellerNumber: tellerNumber,
+            userName: fields['姓名'] || '',
+            ygxs: fields['ygxs'] || '',
+            existingRecord: null
+        };
+
+        // 判断是否已报名：看"旅行线路"字段是否有值
+        if (fields['旅行线路']) {
             result.existingRecord = {
                 id: record.id,
-                fields: record.fields,
-                allowEdit: record.fields['是否允许修改'] !== '否'
+                fields: fields,
+                allowEdit: fields['是否允许修改'] !== '否'
             };
         }
 
         return res.status(200).json(result);
 
     } catch (error) {
-        console.error('合并查询失败:', error);
+        console.error('查询失败:', error);
         return res.status(500).json({ error: error.message });
     }
 };
