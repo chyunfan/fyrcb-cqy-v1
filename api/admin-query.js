@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { token, route, month, tellerNumber, page, pageSize } = req.query;
+    const { token, route, month, tellerNumber, signedUp, page, pageSize } = req.query;
 
     if (token !== ADMIN_TOKEN) return res.status(401).json({ error: '无权限' });
     if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN) return res.status(500).json({ error: 'Airtable 配置未设置' });
@@ -24,6 +24,12 @@ module.exports = async (req, res) => {
         if (route) conditions.push("FIND('" + route + "', {旅行线路})");
         if (month) conditions.push("{月份}='" + month + "'");
         if (tellerNumber) conditions.push('{柜员号}=' + parseInt(tellerNumber, 10));
+        // 是否报名筛选（默认"是"，只显示已报名）
+        if (signedUp === '是') {
+            conditions.push('LEN({旅行线路}) > 0');
+        } else if (signedUp === '否') {
+            conditions.push('LEN({旅行线路}) = 0');
+        }
         if (conditions.length > 0) formula = 'AND(' + conditions.join(',') + ')';
 
         const url = 'https://api.airtable.com/v0/' + AIRTABLE_BASE_ID + '/' + encodeURIComponent(TABLE_NAME) +

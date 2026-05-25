@@ -29,6 +29,12 @@ module.exports = async (req, res) => {
         if (filters.month) conditions.push("{月份}='" + filters.month + "'");
         if (filters.tellerNumberStart) conditions.push('{柜员号}>=' + parseInt(filters.tellerNumberStart, 10));
         if (filters.tellerNumberEnd) conditions.push('{柜员号}<=' + parseInt(filters.tellerNumberEnd, 10));
+        // 是否报名筛选（默认"是"，只操作已报名）
+        if (filters.signedUp === '是') {
+            conditions.push('LEN({旅行线路}) > 0');
+        } else if (filters.signedUp === '否') {
+            conditions.push('LEN({旅行线路}) = 0');
+        }
 
         const formula = 'AND(' + conditions.join(',') + ')';
         let allRecords = [];
