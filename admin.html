@@ -407,6 +407,11 @@
                         <option>6月</option><option>7月</option><option>8月</option>
                     </select>
                     <input type="text" id="filterTeller" placeholder="柜员号">
+                    <select id="filterSignedUp">
+                        <option value="是" selected>已报名</option>
+                        <option value="否">未报名</option>
+                        <option value="全部">全部</option>
+                    </select>
                     <button class="btn btn-primary" onclick="loadRecords(1)"><i class="fa fa-magnifying-glass"></i> 搜索</button>
                     <a class="btn btn-outline" id="exportBtn" href="#" download><i class="fa fa-file-csv"></i> 导出 CSV</a>
                 </div>
@@ -471,6 +476,11 @@
                             <select id="batchMonth">
                                 <option value="">全部月份</option>
                                 <option>6月</option><option>7月</option><option>8月</option>
+                            </select>
+                            <select id="batchSignedUp">
+                                <option value="是" selected>已报名</option>
+                                <option value="否">未报名</option>
+                                <option value="全部">全部</option>
                             </select>
                         </div>
                         <div class="condition-row" style="margin-top:10px;">
@@ -562,9 +572,11 @@
         var route = document.getElementById('filterRoute').value;
         var month = document.getElementById('filterMonth').value;
         var teller = document.getElementById('filterTeller').value.trim();
+        var signedUp = document.getElementById('filterSignedUp').value;
         if (route) params += '&route=' + encodeURIComponent(route);
         if (month) params += '&month=' + encodeURIComponent(month);
         if (teller) params += '&tellerNumber=' + encodeURIComponent(teller);
+        if (signedUp) params += '&signedUp=' + encodeURIComponent(signedUp);
 
         fetch(API_BASE + '/api/admin-query' + params)
             .then(function(r) { return r.json(); })
@@ -675,9 +687,11 @@
     document.getElementById('exportBtn').addEventListener('click', function(e) {
         var route = document.getElementById('filterRoute').value;
         var month = document.getElementById('filterMonth').value;
+        var signedUp = document.getElementById('filterSignedUp').value;
         var params = '?token=' + encodeURIComponent(TOKEN);
         if (route) params += '&route=' + encodeURIComponent(route);
         if (month) params += '&month=' + encodeURIComponent(month);
+        if (signedUp) params += '&signedUp=' + encodeURIComponent(signedUp);
         this.href = API_BASE + '/api/admin-export' + params;
     });
 
@@ -691,6 +705,7 @@
         var month = document.getElementById('batchMonth').value;
         var start = document.getElementById('batchTellerStart').value.trim();
         var end = document.getElementById('batchTellerEnd').value.trim();
+        var signedUp = document.getElementById('batchSignedUp').value;
         if (route) filters.route = route;
         if (month) filters.month = month;
         if (start) filters.tellerNumberStart = start;
@@ -703,6 +718,7 @@
         var queryParams = '?token=' + encodeURIComponent(TOKEN);
         if (route) queryParams += '&route=' + encodeURIComponent(route);
         if (month) queryParams += '&month=' + encodeURIComponent(month);
+        if (signedUp) queryParams += '&signedUp=' + encodeURIComponent(signedUp);
 
         fetch(API_BASE + '/api/admin-query' + queryParams)
             .then(function(r) { return r.json(); })
@@ -743,6 +759,7 @@
                 filters: {
                     route: document.getElementById('batchRoute').value || undefined,
                     month: document.getElementById('batchMonth').value || undefined,
+                    signedUp: document.getElementById('batchSignedUp').value || undefined,
                     tellerNumberStart: document.getElementById('batchTellerStart').value.trim() || undefined,
                     tellerNumberEnd: document.getElementById('batchTellerEnd').value.trim() || undefined
                 }
