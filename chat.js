@@ -105,6 +105,14 @@ function processUserInput(msg) {
         return;
     }
 
+    // 优先级0.5：查看有哪些线路（展示所有线路列表）
+    if (matchShowAllRoutes(msg)) {
+        isProcessing = false;
+        setInputDisabled(false);
+        showAllRoutes();
+        return;
+    }
+
     // 优先级1：查看附件关键词（已收紧：必须明确表达查看附件意图）
     if (matchAttachmentKeyword(msg)) {
         const route = matchRouteKeyword(msg);
@@ -734,6 +742,13 @@ function doReset() {
 
 // ========== 全局关键词匹配 ==========
 
+// 匹配"查看所有线路列表"意图
+function matchShowAllRoutes(msg) {
+    const keywords = ['有哪些线路', '有什么线路', '线路列表', '所有线路', '全部线路', '几条线路', '查看线路', '线路介绍', '看下线路', '看线路', '看其它线路', '其它线路', '看所有'];
+    const lower = msg.toLowerCase();
+    return keywords.some(function(kw) { return lower.includes(kw); });
+}
+
 // 匹配路线关键词 → 返回路线名或 null
 function matchRouteKeyword(msg) {
     const routeMap = {
@@ -758,8 +773,8 @@ function matchAttachmentKeyword(msg) {
     const lower = msg.toLowerCase();
     // 如果包含"修改"或"改"，不是查看附件意图
     if (lower.includes('修改') || lower.includes('改')) return false;
-    // 必须包含附件相关词
-    const attachKeywords = ['附件', '图片', 'pdf', '行程', '路线介绍', '路线详情'];
+    // 附件相关词（宽泛：包含"看下""看看"等自然语言）
+    const attachKeywords = ['附件', '图片', 'pdf', '行程', '路线介绍', '路线详情', '看下', '看看', '看附件', '看图片', '看pdf', '看行程'];
     return attachKeywords.some(function(kw) { return lower.includes(kw); });
 }
 
@@ -797,6 +812,24 @@ function parseFamilyNumber(msg) {
         if (n >= 0 && n <= 2) return n;
     }
     return null;
+}
+
+// ========== 展示所有线路列表 ==========
+function showAllRoutes() {
+    let html = '<div class="confirm-card">';
+    html += '<div class="card-title">🗺️ 可选线路（共6条）：</div>';
+    html += '<div class="info-row"><span class="value">1. 江西庐山3天2晚</span></div>';
+    html += '<div class="info-row"><span class="value">2. 福建厦门3天2晚</span></div>';
+    html += '<div class="info-row"><span class="value">3. 上海2天1晚</span></div>';
+    html += '<div class="info-row"><span class="value">4. 泰顺苍南3天2晚</span></div>';
+    html += '<div class="info-row"><span class="value">5. 宁海3天2晚</span></div>';
+    html += '<div class="info-row"><span class="value">6. 台州椒江3天2晚</span></div>';
+    html += '<div class="hint">说「看一下厦门」等查看具体线路附件</div>';
+    html += '<div class="btn-group">';
+    html += '<button class="chat-btn primary" onclick="window.open(\'https://www.chyunfan.cn/attachments.html\', \'_blank\')">📋 查看所有线路附件</button>';
+    html += '</div>';
+    html += '</div>';
+    appendBotMsg(html);
 }
 
 // ========== 展示附件 ==========
