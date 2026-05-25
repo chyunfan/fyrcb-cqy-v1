@@ -221,17 +221,61 @@ body {
     border: 1px solid #c3dafe;
 }
 
-.confirm-card .label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
+.confirm-card .info-row {
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.6;
 }
 
-.confirm-card .value {
-    font-size: 14px;
+.confirm-card .info-row .label {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.confirm-card .info-row .value {
     color: var(--text);
     font-weight: 500;
-    margin-bottom: 10px;
+}
+
+.confirm-card .card-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 15px;
+}
+
+.confirm-card .card-title.success {
+    color: var(--success);
+}
+
+.confirm-card .card-title.warning {
+    color: var(--warning);
+}
+
+.confirm-card .hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.confirm-card .btn-group {
+    margin-top: 12px;
+}
+
+/* 只读/警告卡片 */
+.confirm-card.readonly {
+    background: #fff7e6;
+    border-color: #ffd591;
+}
+
+.confirm-card .readonly-hint {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--warning);
+}
+
+/* 按钮包裹层 */
+.btn-wrapper {
+    margin-top: 8px;
 }
 
 /* 输入区 */

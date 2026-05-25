@@ -2,13 +2,13 @@
 
 // ========== 状态定义 ==========
 const STATE = {
-    TELLER:   'TELLER',   // 询问柜员号
-    ROUTE:    'ROUTE',    // 询问旅行线路
-    MONTH:    'MONTH',    // 询问月份
-    FAMILY:   'FAMILY',   // 询问家属人数
-    REMARK:   'REMARK',   // 询问备注
-    CONFIRM:   'CONFIRM',   // 确认提交
-    DONE:      'DONE'       // 已完成（遮罩）
+    TELLER:  'TELLER',   // 询问柜员号
+    ROUTE:   'ROUTE',    // 询问旅行线路
+    MONTH:   'MONTH',    // 询问月份
+    FAMILY:  'FAMILY',   // 询问家属人数
+    REMARK:  'REMARK',   // 询问备注
+    CONFIRM: 'CONFIRM',  // 确认提交
+    DONE:    'DONE'      // 已完成（遮罩）
 };
 
 let state = STATE.TELLER;
@@ -21,7 +21,8 @@ let data = {
     family: 0,
     remark: '',
     recordId: null,
-    allowEdit: true
+    allowEdit: true,
+    isModifying: false   // 是否正在单项修改模式
 };
 let isProcessing = false; // 防连点
 
@@ -46,23 +47,19 @@ window.addEventListener('DOMContentLoaded', function() {
                 data.family = f['家庭成员人数'] != null ? f['家庭成员人数'] : 0;
                 data.remark = f['备注'] || '';
 
-                if (!info.allowEdit) {
-                    // 不允许修改
+                if (!data.allowEdit) {
                     state = STATE.DONE;
                     appendBotMsg('⚠️ 当前不允许修改报名信息，如需调整请联系管理员');
                     showReadonlyView();
                 } else {
-                    // 已报名，展示信息并询问是否修改
                     state = STATE.DONE;
                     showSubmittedView();
                 }
             } else {
-                // 未报名，进入正常流程
                 state = STATE.ROUTE;
                 askRoute();
             }
 
-            // 显示用户信息
             appendBotMsg('✅ 欢迎回来，' + data.userName + '！');
             setHeaderStatus('已登录：' + data.userName);
             return;
@@ -72,9 +69,7 @@ window.addEventListener('DOMContentLoaded', function() {
     // 未登录，开始流程
     state = STATE.TELLER;
     appendBotMsg('👋 您好！我是春秋游报名助手。');
-    setTimeout(function() {
-        askTellerNumber();
-    }, 500);
+    setTimeout(function() { askTellerNumber(); }, 500);
 });
 
 // ========== 发送消息 ==========
@@ -101,18 +96,21 @@ function processUserInput(msg) {
     isProcessing = true;
     setInputDisabled(true);
 
-    // 优先级1：查看附件关键词
-    const route = matchRouteKeyword(msg);
-    if (route) {
+    // 优先级0：修改意图识别（必须在附件之前，避免"修改线路"被误判）
+    const modifyField = matchModifyKeyword(msg);
+    if (modifyField) {
+        isProcessing = false;
+        setInputDisabled(false);
+        startModify(modifyField);
+        return;
+    }
+
+    // 优先级1：查看附件关键词（已收紧：必须明确表达查看附件意图）
+    if (matchAttachmentKeyword(msg)) {
+        const route = matchRouteKeyword(msg);
         isProcessing = false;
         setInputDisabled(false);
         showAttachment(route);
-        return;
-    }
-    if (matchAttachmentKeyword(msg)) {
-        isProcessing = false;
-        setInputDisabled(false);
-        showAttachment(null);
         return;
     }
 
@@ -124,7 +122,7 @@ function processUserInput(msg) {
         return;
     }
 
-    // 优先级3：重置流程
+    // 优先级3：重置流程（重新输入柜员号）
     if (matchReset(msg)) {
         isProcessing = false;
         setInputDisabled(false);
@@ -132,7 +130,16 @@ function processUserInput(msg) {
         return;
     }
 
-    // 优先级4：正常流程
+    // 优先级4：DONE 状态下输入有效柜员号 → 重新验证（允许修改）
+    if (state === STATE.DONE && validateTellerNumber(msg.trim())) {
+        isProcessing = false;
+        setInputDisabled(false);
+        appendBotMsg('🔄 重新验证柜员号...');
+        handleTellerNumber(msg);
+        return;
+    }
+
+    // 优先级5：正常流程
     switch (state) {
         case STATE.TELLER:
             handleTellerNumber(msg);
@@ -153,7 +160,8 @@ function processUserInput(msg) {
             handleConfirm(msg);
             break;
         case STATE.DONE:
-            appendBotMsg('✅ 您已提交报名，如需修改请重新输入柜员号并确认。');
+            // DONE 状态下不识别的输入，提示用户可以说什么
+            appendBotMsg('💡 您可以说："修改线路""修改时间""修改人数""修改备注"，或重新输入柜员号');
             isProcessing = false;
             setInputDisabled(false);
             break;
@@ -161,6 +169,122 @@ function processUserInput(msg) {
             isProcessing = false;
             setInputDisabled(false);
     }
+}
+
+// ========== 修改意图识别 ==========
+// 返回：'route' | 'month' | 'family' | 'remark' | 'choose' | null
+function matchModifyKeyword(msg) {
+    const lower = msg.toLowerCase();
+
+    // 必须包含"修改"或"改"
+    if (!lower.includes('修改') && !lower.includes('改')) return null;
+
+    // 模糊说"修改"（没有指定改哪项）
+    if (lower === '修改' || lower === '改一下' || lower === '我想修改') {
+        return 'choose';
+    }
+
+    if (lower.includes('线路') || lower.includes('路线') || lower.includes('旅游') || lower.includes('旅行')) {
+        return 'route';
+    }
+    if (lower.includes('时间') || lower.includes('月份') || lower.includes('月')) {
+        return 'month';
+    }
+    if (lower.includes('人数') || lower.includes('家属') || lower.includes('同行') || lower.includes('带')) {
+        return 'family';
+    }
+    if (lower.includes('备注') || lower.includes('留言') || lower.includes('说明')) {
+        return 'remark';
+    }
+
+    // 包含"修改"但没有识别到具体项
+    return 'choose';
+}
+
+// 开始单项修改
+function startModify(field) {
+    if (!data.tellerNumber) {
+        appendBotMsg('⚠️ 请先告诉我您的柜员号');
+        return;
+    }
+    if (!data.allowEdit) {
+        appendBotMsg('⚠️ 当前不允许修改报名信息，如需调整请联系管理员');
+        return;
+    }
+
+    if (field === 'choose') {
+        showModifyOptions();
+        return;
+    }
+
+    data.isModifying = true;
+    data.modifyField = field;
+
+    switch (field) {
+        case 'route':
+            state = STATE.ROUTE;
+            appendBotMsg('🤖 请选择新的线路：');
+            showRouteButtons();
+            break;
+        case 'month':
+            state = STATE.MONTH;
+            appendBotMsg('🤖 请选择新的月份：');
+            showMonthButtons();
+            break;
+        case 'family':
+            state = STATE.FAMILY;
+            appendBotMsg('🤖 请选择新的家属人数（<span class="warning">不含本人</span>）：');
+            showFamilyButtons();
+            break;
+        case 'remark':
+            state = STATE.REMARK;
+            appendBotMsg('🤖 请输入新的备注（选填，没有请说"无"）：');
+            break;
+    }
+}
+
+// 展示修改选项
+function showModifyOptions() {
+    let html = '<div class="confirm-card">';
+    html += '<div class="card-title">✏️ 请选择要修改的项：</div>';
+    html += '<div class="btn-group">';
+    html += '<button class="chat-btn" onclick="handleModifyChoice(\'route\')">🗺️ 修改线路</button>';
+    html += '<button class="chat-btn" onclick="handleModifyChoice(\'month\')">📅 修改月份</button>';
+    html += '<button class="chat-btn" onclick="handleModifyChoice(\'family\')">👨👩👧 修改家属人数</button>';
+    html += '<button class="chat-btn" onclick="handleModifyChoice(\'remark\')">📝 修改备注</button>';
+    html += '</div>';
+    html += '<div class="hint">或说"重新报名"走完整流程</div>';
+    html += '</div>';
+    appendBotMsg(html);
+}
+
+function handleModifyChoice(choice) {
+    data.isModifying = true;
+    data.modifyField = choice;
+
+    switch (choice) {
+        case 'route':
+            state = STATE.ROUTE;
+            appendBotMsg('🤖 请选择新的线路：');
+            showRouteButtons();
+            break;
+        case 'month':
+            state = STATE.MONTH;
+            appendBotMsg('🤖 请选择新的月份：');
+            showMonthButtons();
+            break;
+        case 'family':
+            state = STATE.FAMILY;
+            appendBotMsg('🤖 请选择新的家属人数（<span class="warning">不含本人</span>）：');
+            showFamilyButtons();
+            break;
+        case 'remark':
+            state = STATE.REMARK;
+            appendBotMsg('🤖 请输入新的备注（选填，没有请说"无"）：');
+            break;
+    }
+    isProcessing = false;
+    setInputDisabled(false);
 }
 
 // ========== 各状态处理函数 ==========
@@ -216,7 +340,6 @@ function handleTellerNumber(msg) {
                 data.remark = f['备注'] || '';
 
                 if (!data.allowEdit) {
-                    // 不允许修改
                     state = STATE.DONE;
                     setTimeout(function() {
                         appendBotMsg('⚠️ 当前不允许修改报名信息，如需调整请联系管理员');
@@ -271,8 +394,14 @@ function handleRoute(msg) {
 
     data.route = route;
     appendBotMsg('✅ 已选择：<span class="highlight">' + route + '</span>');
-    state = STATE.MONTH;
 
+    // 修改模式：直接保存
+    if (data.isModifying) {
+        doPatchAndShow('线路已更新为：' + route);
+        return;
+    }
+
+    state = STATE.MONTH;
     setTimeout(function() {
         askMonth();
         isProcessing = false;
@@ -299,8 +428,14 @@ function handleMonth(msg) {
 
     data.month = month;
     appendBotMsg('✅ 已选择：<span class="highlight">' + month + '</span>');
-    state = STATE.FAMILY;
 
+    // 修改模式：直接保存
+    if (data.isModifying) {
+        doPatchAndShow('月份已更新为：' + month);
+        return;
+    }
+
+    state = STATE.FAMILY;
     setTimeout(function() {
         askFamily();
         isProcessing = false;
@@ -328,8 +463,14 @@ function handleFamily(msg) {
     data.family = family;
     const text = family === 0 ? '0人（仅本人）' : family + '人';
     appendBotMsg('✅ 已选择：<span class="highlight">' + text + '</span>');
-    state = STATE.REMARK;
 
+    // 修改模式：直接保存
+    if (data.isModifying) {
+        doPatchAndShow('家属人数已更新为：' + text);
+        return;
+    }
+
+    state = STATE.REMARK;
     setTimeout(function() {
         askRemark();
         isProcessing = false;
@@ -350,8 +491,15 @@ function handleRemark(msg) {
     } else {
         appendBotMsg('✅ 已确认：无备注');
     }
-    state = STATE.CONFIRM;
 
+    // 修改模式：直接保存
+    if (data.isModifying) {
+        const remarkText = data.remark || '无';
+        doPatchAndShow('备注已更新为：' + remarkText);
+        return;
+    }
+
+    state = STATE.CONFIRM;
     setTimeout(function() {
         showConfirm();
         isProcessing = false;
@@ -365,12 +513,14 @@ function showConfirm() {
     const remarkText = data.remark || '无';
 
     let html = '<div class="confirm-card">';
-    html += '<div style="font-weight:600;margin-bottom:12px;">📋 请确认报名信息：</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">线路：</span><span style="font-weight:500;">' + data.route + '</span></div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">月份：</span><span style="font-weight:500;">' + data.month + '</span></div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">家属人数：</span><span style="font-weight:500;">' + familyText + '</span></div>';
-    html += '<div style="margin-bottom:12px;"><span style="color:var(--text-secondary);">备注：</span><span style="font-weight:500;">' + remarkText + '</span></div>';
-    html += '<div style="display:flex;gap:10px;margin-top:12px;">';
+    html += '<div class="card-title">📋 请确认报名信息：</div>';
+    html += '<div class="info-row"><span class="label">柜员号：</span><span class="value">' + data.tellerNumber + '</span></div>';
+    html += '<div class="info-row"><span class="label">姓名：</span><span class="value">' + data.userName + '</span></div>';
+    html += '<div class="info-row"><span class="label">线路：</span><span class="value">' + data.route + '</span></div>';
+    html += '<div class="info-row"><span class="label">月份：</span><span class="value">' + data.month + '</span></div>';
+    html += '<div class="info-row"><span class="label">家属人数：</span><span class="value">' + familyText + '</span></div>';
+    html += '<div class="info-row"><span class="label">备注：</span><span class="value">' + remarkText + '</span></div>';
+    html += '<div class="btn-group">';
     html += '<button class="chat-btn primary" onclick="handleConfirmClick(true)">✅ 确认提交</button>';
     html += '<button class="chat-btn" onclick="handleConfirmClick(false)">✏️ 修改</button>';
     html += '</div></div>';
@@ -400,7 +550,7 @@ function handleConfirmClick(confirm) {
     }
 }
 
-// ========== 提交 ==========
+// ========== 提交（首次或重新报名）==========
 function doSubmit() {
     appendBotMsg('⏳ 正在提交报名信息...');
     setHeader('正在提交...');
@@ -447,18 +597,88 @@ function doSubmit() {
     });
 }
 
+// ========== 单项修改后保存 ==========
+function doPatchAndShow(successMsg) {
+    appendBotMsg('⏳ 正在保存...');
+    setHeader('正在保存...');
+    isProcessing = true;
+    setInputDisabled(true);
+
+    const body = {
+        tellerNumber: data.tellerNumber,
+        userName: data.userName,
+        ygxs: data.ygxs,
+        route: data.route,
+        month: data.month,
+        family: data.family,
+        remark: data.remark
+    };
+
+    fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(result) {
+        if (result.error) {
+            appendBotMsg('❌ 保存失败：' + result.error);
+            data.isModifying = false;
+            isProcessing = false;
+            setInputDisabled(false);
+            return;
+        }
+
+        appendBotMsg('✅ ' + successMsg);
+        data.isModifying = false;
+
+        // 更新 sessionStorage
+        updateSessionStorage();
+
+        state = STATE.DONE;
+        setTimeout(function() {
+            showSubmittedView();
+            isProcessing = false;
+            setInputDisabled(false);
+        }, 600);
+    })
+    .catch(function(err) {
+        appendBotMsg('❌ 保存失败：' + err.message);
+        data.isModifying = false;
+        isProcessing = false;
+        setInputDisabled(false);
+    });
+}
+
 // ========== 展示提交后视图 ==========
 function showSubmittedView() {
+    const familyText = data.family === 0 ? '0人（仅本人）' : data.family + '人';
+
     let html = '<div class="confirm-card">';
-    html += '<div style="font-weight:600;margin-bottom:12px;" class="success">✅ 您已提交报名</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">线路：</span>' + data.route + '</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">月份：</span>' + data.month + '</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">家属人数：</span>' + (data.family === 0 ? '0人（仅本人）' : data.family + '人') + '</div>';
+    html += '<div class="card-title success">✅ 您已提交报名</div>';
+    html += '<div class="info-row"><span class="label">线路：</span><span class="value">' + data.route + '</span></div>';
+    html += '<div class="info-row"><span class="label">月份：</span><span class="value">' + data.month + '</span></div>';
+    html += '<div class="info-row"><span class="label">家属人数：</span><span class="value">' + familyText + '</span></div>';
     if (data.remark) {
-        html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">备注：</span>' + data.remark + '</div>';
+        html += '<div class="info-row"><span class="label">备注：</span><span class="value">' + data.remark + '</span></div>';
     }
-    html += '<div style="margin-top:12px;font-size:13px;color:var(--text-secondary);">如需修改，请重新输入柜员号并确认</div>';
-    html += '<button class="chat-btn" onclick="doReset()" style="margin-top:10px;">🔄 重新输入柜员号</button>';
+    html += '<div class="hint">如需修改，请说"修改线路"等，或重新输入柜员号</div>';
+
+    if (data.allowEdit) {
+        html += '<div class="btn-group">';
+        html += '<button class="chat-btn" onclick="handleModifyChoice(\'route\')">修改线路</button>';
+        html += '<button class="chat-btn" onclick="handleModifyChoice(\'month\')">修改月份</button>';
+        html += '<button class="chat-btn" onclick="handleModifyChoice(\'family\')">修改人数</button>';
+        html += '<button class="chat-btn" onclick="handleModifyChoice(\'remark\')">修改备注</button>';
+        html += '</div>';
+        html += '<div class="btn-wrapper">';
+        html += '<button class="chat-btn" onclick="doResetFlow()">🔄 重新报名（走完整流程）</button>';
+        html += '</div>';
+    }
+
+    html += '<div class="btn-wrapper">';
+    html += '<button class="chat-btn" onclick="doReset()">🔄 切换柜员号</button>';
+    html += '</div>';
     html += '</div>';
 
     appendBotMsg(html);
@@ -466,15 +686,20 @@ function showSubmittedView() {
 }
 
 function showReadonlyView() {
-    let html = '<div class="confirm-card" style="border-color:#ffd591;background:#fff7e6;">';
-    html += '<div style="font-weight:600;margin-bottom:12px;" class="warning">⚠️ 当前不允许修改</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">线路：</span>' + data.route + '</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">月份：</span>' + data.month + '</div>';
-    html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">家属人数：</span>' + (data.family === 0 ? '0人（仅本人）' : data.family + '人') + '</div>';
+    const familyText = data.family === 0 ? '0人（仅本人）' : data.family + '人';
+
+    let html = '<div class="confirm-card readonly">';
+    html += '<div class="card-title warning">⚠️ 当前不允许修改</div>';
+    html += '<div class="info-row"><span class="label">线路：</span><span class="value">' + data.route + '</span></div>';
+    html += '<div class="info-row"><span class="label">月份：</span><span class="value">' + data.month + '</span></div>';
+    html += '<div class="info-row"><span class="label">家属人数：</span><span class="value">' + familyText + '</span></div>';
     if (data.remark) {
-        html += '<div style="margin-bottom:8px;"><span style="color:var(--text-secondary);">备注：</span>' + data.remark + '</div>';
+        html += '<div class="info-row"><span class="label">备注：</span><span class="value">' + data.remark + '</span></div>';
     }
-    html += '<div style="margin-top:12px;font-size:13px;color:var(--warning);">如需调整，请联系管理员</div>';
+    html += '<div class="readonly-hint">如需调整，请联系管理员</div>';
+    html += '<div class="btn-wrapper">';
+    html += '<button class="chat-btn" onclick="doReset()">🔄 切换柜员号</button>';
+    html += '</div>';
     html += '</div>';
 
     appendBotMsg(html);
@@ -483,6 +708,7 @@ function showReadonlyView() {
 
 // ========== 重置流程 ==========
 function doResetFlow() {
+    data.isModifying = false;
     data.route  = '';
     data.month  = '';
     data.family = 0;
@@ -493,12 +719,12 @@ function doResetFlow() {
 }
 
 function doReset() {
-    // 清除 sessionStorage
     sessionStorage.removeItem('cqy_teller');
     data = {
         tellerNumber: '', userName: '', ygxs: '',
         route: '', month: '', family: 0, remark: '',
-        recordId: null, allowEdit: true
+        recordId: null, allowEdit: true,
+        isModifying: false
     };
     state = STATE.TELLER;
     appendBotMsg('🔄 已重置，请重新输入柜员号：');
@@ -511,12 +737,12 @@ function doReset() {
 // 匹配路线关键词 → 返回路线名或 null
 function matchRouteKeyword(msg) {
     const routeMap = {
-        '江西庐山3天2晚': ['庐山', '江西', 'lu山'],
-        '福建厦门3天2晚': ['厦门', '福建', 'xia门'],
-        '上海2天1晚': ['上海', 'shang海'],
-        '泰顺苍南3天2晚': ['泰顺', '苍南', 'tai顺'],
-        '宁海3天2晚': ['宁海', 'ning海'],
-        '台州椒江3天2晚': ['台州', '椒江', 'tai州']
+        '江西庐山3天2晚': ['庐山', '江西'],
+        '福建厦门3天2晚': ['厦门', '福建'],
+        '上海2天1晚': ['上海'],
+        '泰顺苍南3天2晚': ['泰顺', '苍南'],
+        '宁海3天2晚': ['宁海'],
+        '台州椒江3天2晚': ['台州', '椒江']
     };
     const lower = msg.toLowerCase();
     for (let [route, keywords] of Object.entries(routeMap)) {
@@ -527,11 +753,14 @@ function matchRouteKeyword(msg) {
     return null;
 }
 
-// 匹配附件关键词
+// 匹配附件关键词（收紧：必须明确表达查看附件意图，且不包含"修改"）
 function matchAttachmentKeyword(msg) {
-    const keywords = ['附件', '图片', '查看', '详细', '情况', '路线', '介绍', '行程'];
     const lower = msg.toLowerCase();
-    return keywords.some(function(kw) { return lower.includes(kw); });
+    // 如果包含"修改"或"改"，不是查看附件意图
+    if (lower.includes('修改') || lower.includes('改')) return false;
+    // 必须包含附件相关词
+    const attachKeywords = ['附件', '图片', 'pdf', '行程', '路线介绍', '路线详情'];
+    return attachKeywords.some(function(kw) { return lower.includes(kw); });
 }
 
 // 匹配查看报名信息关键词
@@ -541,9 +770,9 @@ function matchCheckInfo(msg) {
     return keywords.some(function(kw) { return lower.includes(kw); });
 }
 
-// 匹配重置关键词
+// 匹配重置关键词（重新输入柜员号）
 function matchReset(msg) {
-    const keywords = ['重新输入', '重新填写', '重新开始', '重置'];
+    const keywords = ['重新输入', '重新填写', '重新开始', '重置', '切换柜员'];
     const lower = msg.toLowerCase();
     return keywords.some(function(kw) { return lower.includes(kw); });
 }
@@ -557,15 +786,15 @@ function matchMonthKeyword(msg) {
     return null;
 }
 
-// 解析家属人数
+// 解析家属人数（上限2）
 function parseFamilyNumber(msg) {
     if (msg === '0' || msg.includes('0人') || msg.includes('仅本人')) return 0;
-    if (msg === '1' || msg.includes('1人') || msg.includes('一个孩子') || msg.includes('一个孩子')) return 1;
-    if (msg === '2' || msg.includes('2人') || msg.includes('两个孩子') || msg.includes('两个孩子')) return 2;
+    if (msg === '1' || msg.includes('1人') || msg.includes('一个孩子')) return 1;
+    if (msg === '2' || msg.includes('2人') || msg.includes('两个孩子')) return 2;
     const match = msg.match(/(\d+)/);
     if (match) {
         const n = parseInt(match[1], 10);
-        if (n >= 0 && n <= 5) return n;
+        if (n >= 0 && n <= 2) return n;
     }
     return null;
 }
@@ -573,25 +802,23 @@ function parseFamilyNumber(msg) {
 // ========== 展示附件 ==========
 function showAttachment(route) {
     if (route) {
-        // 特定路线附件
         const pdfUrl = 'https://www.chyunfan.cn/Route/pdf/' + encodeURIComponent(route) + '.pdf';
         const imgUrl = 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/' + encodeURIComponent(route) + '/1.jpg';
         let html = '📎 <span class="highlight">' + route + '</span> 附件：';
-        html += '<div style="margin-top:8px;display:flex;gap:8px;">';
+        html += '<div class="btn-group">';
         html += '<button class="chat-btn" onclick="window.open(\'' + imgUrl + '\', \'_blank\')">🖼️ 查看图片</button>';
         html += '<button class="chat-btn" onclick="window.open(\'' + pdfUrl + '\', \'_blank\')">📄 下载PDF</button>';
         html += '</div>';
         appendBotMsg(html);
     } else {
         let html = '📎 查看各线路附件：';
-        html += '<div style="margin-top:8px;">';
+        html += '<div class="btn-group">';
         html += '<button class="chat-btn primary" onclick="window.open(\'https://www.chyunfan.cn/attachments.html\', \'_blank\')">📋 查看所有线路附件</button>';
         html += '</div>';
         appendBotMsg(html);
     }
 }
 
-// ========== 展示已提交报名信息 ==========
 function showExistingInfo() {
     if (!data.tellerNumber) {
         appendBotMsg('⚠️ 请先告诉我您的柜员号');
@@ -603,16 +830,16 @@ function showExistingInfo() {
     }
 
     const familyText = data.family === 0 ? '0人（仅本人）' : data.family + '人';
-    let html = '📋 您的报名信息：';
-    html += '<div style="margin-top:8px;">';
-    html += '<div>➤ 线路：' + data.route + '</div>';
-    html += '<div>➤ 月份：' + data.month + '</div>';
-    html += '<div>➤ 家属人数：' + familyText + '</div>';
-    if (data.remark) html += '<div>➤ 备注：' + data.remark + '</div>';
+    let html = '<div class="confirm-card">';
+    html += '<div class="card-title">📋 您的报名信息：</div>';
+    html += '<div class="info-row"><span class="label">线路：</span><span class="value">' + data.route + '</span></div>';
+    html += '<div class="info-row"><span class="label">月份：</span><span class="value">' + data.month + '</span></div>';
+    html += '<div class="info-row"><span class="label">家属人数：</span><span class="value">' + familyText + '</span></div>';
+    if (data.remark) html += '<div class="info-row"><span class="label">备注：</span><span class="value">' + data.remark + '</span></div>';
     html += '</div>';
 
     if (data.allowEdit) {
-        html += '<div style="margin-top:10px;font-size:13px;color:var(--text-secondary);">如需修改，请说"修改"或重新输入柜员号</div>';
+        html += '<div class="hint">如需修改，请说"修改线路"等</div>';
     }
 
     appendBotMsg(html);
@@ -630,7 +857,8 @@ function showRouteButtons() {
     ];
     let html = '<div class="btn-group">';
     routes.forEach(function(r) {
-        html += '<button class="chat-btn" onclick="onBtnClick(\'' + r.replace(/'/g, "\\'") + '\')">' + r.replace('3天2晚', '').replace('2天1晚', '') + '</button>';
+        const short = r.replace('3天2晚', '').replace('2天1晚', '');
+        html += '<button class="chat-btn" onclick="onBtnClick(\'' + r.replace(/'/g, "\\'") + '\')">' + short + '</button>';
     });
     html += '</div>';
     appendBotMsg(html);
@@ -732,6 +960,21 @@ function saveTellerState(result) {
         existingRecord: result.existingRecord || null
     };
     sessionStorage.setItem('cqy_teller', JSON.stringify(state));
+}
+
+function updateSessionStorage() {
+    const saved = sessionStorage.getItem('cqy_teller');
+    if (!saved) return;
+    try {
+        const state = JSON.parse(saved);
+        if (state.existingRecord) {
+            state.existingRecord.fields['旅行线路'] = data.route;
+            state.existingRecord.fields['月份'] = data.month;
+            state.existingRecord.fields['家庭成员人数'] = data.family;
+            state.existingRecord.fields['备注'] = data.remark;
+            sessionStorage.setItem('cqy_teller', JSON.stringify(state));
+        }
+    } catch(e) {}
 }
 
 // ========== Toast ==========
