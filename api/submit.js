@@ -1,9 +1,11 @@
-// 提交/更新报名记录 API（单表 cqy_q1，记录已预填）
+// 提交/更新报名记录 API（Supabase 版）
 // POST /api/submit
 // Body: { tellerNumber, userName, ygxs, route, month, family, remark }
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
-const AIRTABLE_TABLE = 'cqy_q1';
+const { createClient } = require('@supabase/supabase-js');
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const TABLE_NAME = 'cqy_q1';
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,8 +20,8 @@ module.exports = async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN) {
-        return res.status(500).json({ error: 'Airtable 配置未设置' });
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+        return res.status(500).json({ error: 'Supabase 配置未设置' });
     }
 
     try {
@@ -30,27 +32,10 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: '缺少必填参数' });
         }
 
-        const baseUrl = 'https://api.airtable.com/v0/' + AIRTABLE_BASE_ID;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+        const num = parseInt(tellerNumber, 10);
 
-        // 根据柜员号查找 Airtable 记录 ID
-        const filter = encodeURIComponent('{柜员号}=' + parseInt(tellerNumber, 10));
-        const listResp = await fetch(
-            baseUrl + '/' + encodeURIComponent(AIRTABLE_TABLE) + '?filterByFormula=' + filter,
-            { headers: { 'Authorization': 'Bearer ' + AIRTABLE_TOKEN } }
-        );
-        const listData = await listResp.json();
-
-        if (!listResp.ok) {
-            throw new Error((listData.error && listData.error.message) || '查找记录失败');
-        }
-
-        if (!listData.records || listData.records.length === 0) {
-            return res.status(404).json({ error: '未找到该柜员号记录，请联系管理员' });
-        }
-
-        const recordId = listData.records[0].id;
-
-        // PATCH 更新报名字段
+        // 构建更新字段
         const fields = {};
         if (userName) fields['姓名'] = userName;
         if (ygxs !== undefined) fields['ygxs'] = ygxs || '';
@@ -58,26 +43,21 @@ module.exports = async (req, res) => {
         if (month) fields['月份'] = month;
         if (family !== undefined) fields['家庭成员人数'] = parseInt(family) || 0;
         if (remark !== undefined) fields['备注'] = remark || '';
+        fields['updated_at'] = new Date().toISOString();
 
-        const patchResp = await fetch(
-            baseUrl + '/' + encodeURIComponent(AIRTABLE_TABLE) + '/' + recordId,
-            {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ fields: fields })
-            }
-        );
+        // 根据柜员号更新记录（记录一定存在，因为 843 人已预填）
+        const { data, error } = await supabase
+            .from(TABLE_NAME)
+            .update(fields)
+            .eq('柜员号', num)
+            .select()
+            .single();
 
-        const result = await patchResp.json();
-
-        if (!patchResp.ok) {
-            throw new Error((result.error && result.error.message) || '提交失败');
+        if (error) {
+            throw new Error('提交失败：' + error.message);
         }
 
-        return res.status(200).json({ success: true, record: result });
+        return res.status(200).json({ success: true, record: data });
 
     } catch (error) {
         console.error('提交记录失败:', error);

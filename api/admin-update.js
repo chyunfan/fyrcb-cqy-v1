@@ -1,7 +1,9 @@
-// 管理后台：单条/批量更新"是否允许修改"
+// 管理后台：单条/批量更新"是否允许修改"（Supabase 版）
 // POST /api/admin-update  Body: { token, recordIds: [], allowEdit: "是"|"否" }
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+const { createClient } = require('@supabase/supabase-js');
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 const TABLE_NAME = 'cqy_q1';
 
@@ -20,30 +22,22 @@ module.exports = async (req, res) => {
     if (allowEdit !== '是' && allowEdit !== '否') {
         return res.status(400).json({ error: 'allowEdit 必须为"是"或"否"' });
     }
-    if (!AIRTABLE_BASE_ID || !AIRTABLE_TOKEN) return res.status(500).json({ error: 'Airtable 配置未设置' });
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: 'Supabase 配置未设置' });
 
     try {
-        // Airtable PATCH 每次最多10条
-        let updatedCount = 0;
-        for (let i = 0; i < recordIds.length; i += 10) {
-            const batch = recordIds.slice(i, i + 10);
-            const records = batch.map(id => ({
-                id: id,
-                fields: { '是否允许修改': allowEdit }
-            }));
-            const resp = await fetch('https://api.airtable.com/v0/' + AIRTABLE_BASE_ID + '/' + encodeURIComponent(TABLE_NAME), {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': 'Bearer ' + AIRTABLE_TOKEN,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ records: records })
-            });
-            const data = await resp.json();
-            if (!resp.ok) throw new Error((data.error && data.error.message) || '批量更新失败');
-            updatedCount += (data.records || []).length;
-        }
-        res.status(200).json({ success: true, updatedCount: updatedCount });
+        const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+        // recordIds 在 Supabase 中对应的是 id 字段（数字）
+        const { data, error } = await supabase
+            .from(TABLE_NAME)
+            .update({ '是否允许修改': allowEdit, updated_at: new Date().toISOString() })
+            .in('id', recordIds)
+            .select('id');
+
+        if (error) throw new Error('批量更新失败：' + error.message);
+
+        res.status(200).json({ success: true, updatedCount: (data || []).length });
+
     } catch (err) {
         console.error('admin-update 失败:', err);
         res.status(500).json({ error: err.message });
