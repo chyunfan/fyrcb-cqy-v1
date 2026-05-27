@@ -577,6 +577,7 @@
         if (month) params += '&month=' + encodeURIComponent(month);
         if (teller) params += '&tellerNumber=' + encodeURIComponent(teller);
         if (signedUp) params += '&signedUp=' + encodeURIComponent(signedUp);
+        params += '&page=' + (currentPage || 1) + '&pageSize=' + pageSize;
 
         fetch(API_BASE + '/api/admin-query' + params)
             .then(function(r) { return r.json(); })
@@ -821,7 +822,9 @@
         routes.forEach(function(r) {
             Object.keys(data.crossTable[r] || {}).forEach(function(m) { months[m] = true; });
         });
-        var monthList = Object.keys(months).sort();
+        var monthList = Object.keys(months).sort(function(a, b) {
+            return parseInt(a) - parseInt(b);
+        });
 
         if (routes.length === 0 || monthList.length === 0) {
             document.getElementById('crossTableWrap').innerHTML = '<div class="empty"><i class="fa fa-chart-pie"></i><div>暂无数据</div></div>';
