@@ -223,7 +223,7 @@
         .stats-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
         .stats-card::before {
             content:''; position:absolute; top:0; left:0; right:0; height:4px;
-            background:linear-gradient(90deg, var(--primary), var(--primary-dark));
+            background:linear-gradient(90deg, #43b581, #2d9f6a);
         }
         /* 第一行：总报名/允许修改/禁止修改 */
         .stats-card .card-header {
@@ -245,18 +245,29 @@
         .stats-card.deny .icon { background:var(--danger-light); color:var(--danger); }
         .stats-card.deny .num { color:var(--danger); }
 
-        /* 第二行：6条线路 */
-        .stats-card.route::before { background:linear-gradient(90deg, #8b5cf6, #7c3aed); }
+        /* 第二行：6条线路 - 每个线路独立自然色 */
+        .stats-card.route::before { background:linear-gradient(90deg, #34d399, #059669); }
+        .stats-card.route:nth-child(2)::before { background:linear-gradient(90deg, #60a5fa, #2563eb); }
+        .stats-card.route:nth-child(3)::before { background:linear-gradient(90deg, #fbbf24, #d97706); }
+        .stats-card.route:nth-child(4)::before { background:linear-gradient(90deg, #a78bfa, #7c3aed); }
+        .stats-card.route:nth-child(5)::before { background:linear-gradient(90deg, #fb923c, #ea580c); }
+        .stats-card.route:nth-child(6)::before { background:linear-gradient(90deg, #f472b6, #db2777); }
+
         .stats-card.route .route-title {
             font-size:15px; font-weight:700; color:var(--gray-700);
             margin-bottom:12px;
         }
-        .stats-card.route .num { color:#7c3aed; }
+        .stats-card.route .num { color:#059669; }
+        .stats-card.route:nth-child(2) .num { color:#2563eb; }
+        .stats-card.route:nth-child(3) .num { color:#d97706; }
+        .stats-card.route:nth-child(4) .num { color:#7c3aed; }
+        .stats-card.route:nth-child(5) .num { color:#ea580c; }
+        .stats-card.route:nth-child(6) .num { color:#db2777; }
 
         /* ===== 交叉表格 ===== */
         .cross-table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; margin-top:16px; }
         .cross-table thead th {
-            background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background:linear-gradient(135deg, #43b581, #2d9f6a);
             color:var(--white); padding:12px 10px; font-weight:600; text-align:center;
             border-right:1px solid rgba(255,255,255,0.15); letter-spacing:0.3px;
         }
@@ -270,18 +281,18 @@
         }
         .cross-table td:last-child { border-right:none; }
         .cross-table tbody tr:last-child td { border-bottom:none; }
-        .cross-table tbody tr:hover td { background:rgba(74,144,217,0.04); }
+        .cross-table tbody tr:hover td { background:rgba(67,181,129,0.08); }
         .cross-table .row-header {
             background:var(--gray-50); font-weight:600; color:var(--gray-700);
             text-align:left; padding-left:16px; max-width:150px;
             white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
         .cross-table .zero { color:var(--gray-300); font-weight:400; }
-        .cross-table .total-row { background:var(--gray-800); color:var(--white); }
+        .cross-table .total-row { background:#2d9f6a; color:var(--white); }
         .cross-table .total-row td { color:var(--white); border-right:1px solid rgba(255,255,255,0.1); border-bottom:none; font-weight:700; }
         .cross-table .total-row .row-header { background:var(--gray-800); color:var(--white); }
-        .cross-table .total-col { background:rgba(74,144,217,0.06); font-weight:700; color:var(--primary); }
-        .cross-table .total-row .total-col { background:var(--gray-800); color:var(--white); }
+        .cross-table .total-col { background:rgba(67,181,129,0.1); font-weight:700; color:#2d9f6a; }
+        .cross-table .total-row .total-col { background:#2d9f6a; color:var(--white); }
 
         /* ===== 批量设置表单 ===== */
         .batch-form { display:flex; flex-direction:column; gap:20px; }
@@ -395,9 +406,9 @@
 
         <!-- Tab 栏 -->
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('records')"><i class="fa fa-list-ul"></i> 记录管理</div>
+            <div class="tab" onclick="switchTab('records')"><i class="fa fa-list-ul"></i> 记录管理</div>
             <div class="tab" onclick="switchTab('batch')"><i class="fa fa-wand-magic-sparkles"></i> 批量设置</div>
-            <div class="tab" onclick="switchTab('stats')"><i class="fa fa-chart-pie"></i> 统计看板</div>
+            <div class="tab active" onclick="switchTab('stats')"><i class="fa fa-chart-pie"></i> 统计看板</div>
         </div>
 
         <!-- Tab1：记录管理 -->
@@ -515,7 +526,7 @@
         </div>
 
         <!-- Tab3：统计看板 -->
-        <div id="tab-stats" class="tab-content">
+        <div id="tab-stats" class="tab-content active">
             <div class="stats-grid" id="statsCards"></div>
             <div class="card">
                 <div class="card-title"><i class="fa fa-table-cells-large"></i> 线路 × 月份 报名分布</div>
@@ -863,25 +874,34 @@
         monthList.forEach(function(m) { colTotals[m] = 0; });
         var grandTotal = 0;
 
+        var routeShort = {
+            '江西庐山': '1.江西', '福建厦门': '2.福建', '上海': '3.上海',
+            '泰顺苍南': '4.泰顺', '宁海': '5.宁海', '台州椒江': '6.台州'
+        };
+
         routes.forEach(function(r) {
-            html += '<tr><td class="row-header" title="' + r + '">' + r + '</td>';
+            var short = r;
+            for (var k in routeShort) {
+                if (r.indexOf(k) !== -1) { short = routeShort[k]; break; }
+            }
+            html += '<tr><td class="row-header" title="' + r + '">' + short + '</td>';
             var rowTotal = 0;
             monthList.forEach(function(m) {
                 var c = (data.crossTable[r] && data.crossTable[r][m]) || 0;
-                html += '<td class="' + (c === 0 ? 'zero' : '') + '">' + c + '人</td>';
+                html += '<td class="' + (c === 0 ? 'zero' : '') + '">' + c + '</td>';
                 rowTotal += c;
                 colTotals[m] += c;
             });
-            html += '<td class="total-col">' + rowTotal + '人</td></tr>';
+            html += '<td class="total-col">' + rowTotal + '</td></tr>';
             grandTotal += rowTotal;
         });
 
         // 合计行
         html += '<tr class="total-row"><td class="row-header"><i class="fa fa-calculator" style="margin-right:6px;"></i>合计</td>';
         monthList.forEach(function(m) {
-            html += '<td>' + colTotals[m] + '人</td>';
+            html += '<td>' + colTotals[m] + '</td>';
         });
-        html += '<td class="total-col">' + grandTotal + '人</td></tr>';
+        html += '<td class="total-col">' + grandTotal + '</td></tr>';
 
         html += '</tbody></table>';
         document.getElementById('crossTableWrap').innerHTML = html;
