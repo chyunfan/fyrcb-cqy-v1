@@ -69,8 +69,17 @@
 </head>
 <body>
 
-  <!-- 状态1：正在定位 -->
-  <div class="card" id="state-loading">
+  <!-- 状态1：等待用户点击 -->
+  <div class="card" id="state-wait">
+    <div class="icon loading">📍</div>
+    <div class="title">位置验证</div>
+    <div class="desc">点击按钮开始验证位置</div>
+    <br>
+    <button class="btn btn-primary" id="start-btn" onclick="startLocate()">开始验证</button>
+  </div>
+
+  <!-- 状态2：正在定位 -->
+  <div class="card hidden" id="state-loading">
     <div class="icon loading">📍</div>
     <div class="title">正在验证位置</div>
     <div class="desc">请允许获取位置权限</div>
@@ -88,8 +97,9 @@
     <div class="icon error">❌</div>
     <div class="title">不在规定范围内</div>
     <div class="desc">您当前位置超出允许范围（200米），无法继续访问。</div>
-    <div class="distance-info" id="fail-distance"></div>
-    <br>
+            <div class="distance-info" id="fail-distance"></div>
+            <div class="distance-info" id="fail-coords" style="margin-top:6px;color:#ccc;"></div>
+            <br>
     <button class="btn btn-primary" onclick="retry()">重新验证</button>
   </div>
 
@@ -113,15 +123,14 @@
 
   <script>
     // ============ 配置区 ============
-    var CENTER_LAT = 30.0477;           // 中心点纬度
-    var CENTER_LNG = 119.9472;          // 中心点经度
-    var ALLOWED_RADIUS = 200;           // 允许范围（米）
-    var TARGET_URL = 'https://ks.wjx.com/vm/PMYNArE.aspx';  // 验证通过后的跳转地址
+    var CENTER_LAT = 30.00750406;      // 中心点纬度
+    var CENTER_LNG = 119.92764998;     // 中心点经度
+    var ALLOWED_RADIUS = 200;          // 允许范围（米）
+    var TARGET_URL = 'https://ks.wjx.com/vm/PMYNArE.aspx';
     // =================================
 
-    // Haversine 公式：计算两点间距离（米）
     function getDistance(lat1, lng1, lat2, lng2) {
-      var R = 6371000; // 地球半径（米）
+      var R = 6371000;
       var dLat = (lat2 - lat1) * Math.PI / 180;
       var dLng = (lng2 - lng1) * Math.PI / 180;
       var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -136,6 +145,11 @@
       document.getElementById(id).classList.remove('hidden');
     }
 
+    function startLocate() {
+      show('state-loading');
+      setTimeout(getLocation, 300);
+    }
+
     function retry() {
       show('state-loading');
       setTimeout(getLocation, 300);
@@ -148,23 +162,20 @@
       }
 
       navigator.geolocation.getCurrentPosition(
-        // 成功
         function(position) {
           var lat = position.coords.latitude;
           var lng = position.coords.longitude;
-          var accuracy = position.coords.accuracy; // 精度（米）
+          var accuracy = position.coords.accuracy;
           var distance = getDistance(lat, lng, CENTER_LAT, CENTER_LNG);
 
-          console.log('[定位] 用户位置：', lat, lng, '| 精度：', accuracy, '米 | 距离中心点：', Math.round(distance), '米');
+          console.log('[定位] 用户位置：', lat, lng, '| 精度：', accuracy, '米 | 距离：', Math.round(distance), '米');
 
           if (distance <= ALLOWED_RADIUS) {
-            // 验证通过
             show('state-success');
             setTimeout(function() {
               window.location.href = TARGET_URL;
             }, 800);
           } else {
-            // 超出范围：显示实际获取到的坐标，方便用户反馈
             document.getElementById('fail-distance').textContent =
               '当前距离中心点约 ' + Math.round(distance) + ' 米';
             document.getElementById('fail-coords').textContent =
@@ -172,7 +183,6 @@
             show('state-fail-range');
           }
         },
-        // 失败
         function(error) {
           console.log('[定位] 失败：', error.code, error.message);
           if (error.code === error.PERMISSION_DENIED) {
@@ -181,17 +191,13 @@
             show('state-fail-error');
           }
         },
-        // 选项
         {
-          enableHighAccuracy: true,  // 尽可能使用高精度（会触发GPS）
-          timeout: 15000,            // 15秒超时
-          maximumAge: 0              // 不使用缓存
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0
         }
       );
     }
-
-    // 页面加载后自动开始定位
-    retry();
   </script>
 </body>
 </html>
