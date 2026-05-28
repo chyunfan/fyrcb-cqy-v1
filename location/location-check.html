@@ -164,9 +164,11 @@
               window.location.href = TARGET_URL;
             }, 800);
           } else {
-            // 超出范围
+            // 超出范围：显示实际获取到的坐标，方便用户反馈
             document.getElementById('fail-distance').textContent =
               '当前距离中心点约 ' + Math.round(distance) + ' 米';
+            document.getElementById('fail-coords').textContent =
+              '手机实际坐标：纬度 ' + lat.toFixed(8) + '°，经度 ' + lng.toFixed(8) + '°';
             show('state-fail-range');
           }
         },
