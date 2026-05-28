@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>位置验证</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px 24px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+    .icon.loading { background: #e8f4fd; color: #1890ff; }
+    .icon.success { background: #e8f8ee; color: #52c41a; }
+    .icon.error   { background: #fff1f0; color: #ff4d4f; }
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+    .desc {
+      font-size: 14px;
+      color: #888;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 32px;
+      border-radius: 6px;
+      font-size: 15px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-primary { background: #1890ff; color: #fff; }
+    .btn-primary:active { background: #096dd9; }
+    .hidden { display: none !important; }
+    .distance-info {
+      font-size: 13px;
+      color: #aaa;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 状态1：正在定位 -->
+  <div class="card" id="state-loading">
+    <div class="icon loading">📍</div>
+    <div class="title">正在验证位置</div>
+    <div class="desc">请允许获取位置权限</div>
+  </div>
+
+  <!-- 状态2：验证通过 -->
+  <div class="card hidden" id="state-success">
+    <div class="icon success">✅</div>
+    <div class="title">位置验证通过</div>
+    <div class="desc">正在跳转...</div>
+  </div>
+
+  <!-- 状态3：验证失败（超出范围） -->
+  <div class="card hidden" id="state-fail-range">
+    <div class="icon error">❌</div>
+    <div class="title">不在规定范围内</div>
+    <div class="desc">您当前位置超出允许范围（200米），无法继续访问。</div>
+    <div class="distance-info" id="fail-distance"></div>
+    <br>
+    <button class="btn btn-primary" onclick="retry()">重新验证</button>
+  </div>
+
+  <!-- 状态4：定位授权失败 -->
+  <div class="card hidden" id="state-fail-auth">
+    <div class="icon error">🚫</div>
+    <div class="title">需要位置权限</div>
+    <div class="desc">请在浏览器设置中允许获取位置，然后重新尝试。</div>
+    <br>
+    <button class="btn btn-primary" onclick="retry()">重新验证</button>
+  </div>
+
+  <!-- 状态5：定位失败（超时/不支持） -->
+  <div class="card hidden" id="state-fail-error">
+    <div class="icon error">⚠️</div>
+    <div class="title">定位失败</div>
+    <div class="desc">无法获取您的位置信息，请稍后重试。</div>
+    <br>
+    <button class="btn btn-primary" onclick="retry()">重新验证</button>
+  </div>
+
+  <script>
+    // ============ 配置区 ============
+    var CENTER_LAT = 30.0752;          // 中心点纬度
+    var CENTER_LNG = 120.0076;         // 中心点经度
+    var ALLOWED_RADIUS = 200;          // 允许范围（米）
+    var TARGET_URL = 'https://ks.wjx.com/vm/PMYNArE.aspx';  // 验证通过后的跳转地址
+    // =================================
+
+    // Haversine 公式：计算两点间距离（米）
+    function getDistance(lat1, lng1, lat2, lng2) {
+      var R = 6371000; // 地球半径（米）
+      var dLat = (lat2 - lat1) * Math.PI / 180;
+      var dLng = (lng2 - lng1) * Math.PI / 180;
+      var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function show(id) {
+      document.querySelectorAll('.card').forEach(function(c) { c.classList.add('hidden'); });
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function retry() {
+      show('state-loading');
+      setTimeout(getLocation, 300);
+    }
+
+    function getLocation() {
+      if (!navigator.geolocation) {
+        show('state-fail-error');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        // 成功
+        function(position) {
+          var lat = position.coords.latitude;
+          var lng = position.coords.longitude;
+          var accuracy = position.coords.accuracy; // 精度（米）
+          var distance = getDistance(lat, lng, CENTER_LAT, CENTER_LNG);
+
+          console.log('[定位] 用户位置：', lat, lng, '| 精度：', accuracy, '米 | 距离中心点：', Math.round(distance), '米');
+
+          if (distance <= ALLOWED_RADIUS) {
+            // 验证通过
+            show('state-success');
+            setTimeout(function() {
+              window.location.href = TARGET_URL;
+            }, 800);
+          } else {
+            // 超出范围
+            document.getElementById('fail-distance').textContent =
+              '当前距离中心点约 ' + Math.round(distance) + ' 米';
+            show('state-fail-range');
+          }
+        },
+        // 失败
+        function(error) {
+          console.log('[定位] 失败：', error.code, error.message);
+          if (error.code === error.PERMISSION_DENIED) {
+            show('state-fail-auth');
+          } else {
+            show('state-fail-error');
+          }
+        },
+        // 选项
+        {
+          enableHighAccuracy: true,  // 尽可能使用高精度（会触发GPS）
+          timeout: 15000,            // 15秒超时
+          maximumAge: 0              // 不使用缓存
+        }
+      );
+    }
+
+    // 页面加载后自动开始定位
+    retry();
+  </script>
+</body>
+</html>
