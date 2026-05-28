@@ -709,6 +709,7 @@
 
     // CSV 导出
     document.getElementById('exportBtn').addEventListener('click', function(e) {
+        e.preventDefault();
         var route = document.getElementById('filterRoute').value;
         var month = document.getElementById('filterMonth').value;
         var signedUp = document.getElementById('filterSignedUp').value;
@@ -716,7 +717,20 @@
         if (route) params += '&route=' + encodeURIComponent(route);
         if (month) params += '&month=' + encodeURIComponent(month);
         if (signedUp) params += '&signedUp=' + encodeURIComponent(signedUp);
-        this.href = API_BASE + '/api/admin-export' + params;
+
+        fetch(API_BASE + '/api/admin-export' + params)
+            .then(function(r) { return r.blob(); })
+            .then(function(blob) {
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = '春秋游报名明细_' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            })
+            .catch(function() { showToast('导出失败', 'error'); });
     });
 
     // ========== Tab2：批量设置 ==========
