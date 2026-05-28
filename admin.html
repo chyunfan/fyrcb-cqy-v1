@@ -719,7 +719,10 @@
         if (signedUp) params += '&signedUp=' + encodeURIComponent(signedUp);
 
         fetch(API_BASE + '/api/admin-export' + params)
-            .then(function(r) { return r.blob(); })
+            .then(function(r) {
+                if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
+                return r.blob();
+            })
             .then(function(blob) {
                 var url = URL.createObjectURL(blob);
                 var a = document.createElement('a');
@@ -729,8 +732,11 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                showToast('导出成功', 'success');
             })
-            .catch(function() { showToast('导出失败', 'error'); });
+            .catch(function(err) {
+                showToast('导出失败：' + (err.message || '请重试'), 'error');
+            });
     });
 
     // ========== Tab2：批量设置 ==========

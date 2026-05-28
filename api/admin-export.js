@@ -79,9 +79,11 @@ module.exports = async (req, res) => {
         });
 
         const fileName = '春秋游报名明细_' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '.csv';
+        // RFC 5987 编码中文文件名，兼容所有浏览器
+        const encodedFileName = encodeURIComponent(fileName);
 
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', 'attachment; filename="' + fileName + '"');
+        res.setHeader('Content-Disposition', 'attachment; filename="export.csv"; filename*=UTF-8\'' + encodedFileName);
         return res.status(200).send(csv);
 
     } catch (err) {
