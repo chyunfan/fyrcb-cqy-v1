@@ -225,20 +225,32 @@
             content:''; position:absolute; top:0; left:0; right:0; height:4px;
             background:linear-gradient(90deg, var(--primary), var(--primary-dark));
         }
+        /* 第一行：总报名/允许修改/禁止修改 */
+        .stats-card .card-header {
+            display:flex; align-items:center; gap:10px; margin-bottom:12px;
+        }
         .stats-card .icon {
             width:40px; height:40px; border-radius:10px; display:flex;
-            align-items:center; justify-content:center; font-size:18px; margin-bottom:10px;
+            align-items:center; justify-content:center; font-size:18px; flex-shrink:0;
+        }
+        .stats-card .label {
+            font-size:15px; font-weight:700; color:var(--gray-700);
         }
         .stats-card .num { font-size:30px; font-weight:700; line-height:1.2; }
-        .stats-card .label { font-size:12px; color:var(--gray-500); margin-top:4px; font-weight:500; }
+
         .stats-card.allow::before { background:linear-gradient(90deg, var(--accent), #059669); }
         .stats-card.allow .icon { background:var(--accent-light); color:var(--accent); }
         .stats-card.allow .num { color:var(--accent); }
         .stats-card.deny::before { background:linear-gradient(90deg, var(--danger), #dc2626); }
         .stats-card.deny .icon { background:var(--danger-light); color:var(--danger); }
         .stats-card.deny .num { color:var(--danger); }
+
+        /* 第二行：6条线路 */
         .stats-card.route::before { background:linear-gradient(90deg, #8b5cf6, #7c3aed); }
-        .stats-card.route .icon { background:#f3e8ff; color:#7c3aed; }
+        .stats-card.route .route-title {
+            font-size:15px; font-weight:700; color:var(--gray-700);
+            margin-bottom:12px;
+        }
         .stats-card.route .num { color:#7c3aed; }
 
         /* ===== 交叉表格 ===== */
@@ -791,13 +803,20 @@
 
     function renderStatsCards(data) {
         var routeOrder = ['江西庐山', '福建厦门', '上海', '泰顺', '宁海', '台州'];
-        // 第一行：总报名人数 + 允许修改 + 禁止修改
+        // 线路简称映射
+        var routeShort = {
+            '江西庐山': '1.江西', '福建厦门': '2.福建', '上海': '3.上海',
+            '泰顺': '4.泰顺', '宁海': '5.宁海', '台州': '6.台州'
+        };
+
+        // 第一行：总报名人数 + 允许修改 + 禁止修改（图标+标题在一行）
         var html = '<div class="stats-grid stats-grid-row1">';
-        html += '<div class="stats-card"><div class="icon"><i class="fa fa-users"></i></div><div class="num">' + data.total + '</div><div class="label">总报名人数</div></div>';
-        html += '<div class="stats-card allow"><div class="icon"><i class="fa fa-unlock"></i></div><div class="num">' + data.allowEditCount + '</div><div class="label">允许修改</div></div>';
-        html += '<div class="stats-card deny"><div class="icon"><i class="fa fa-lock"></i></div><div class="num">' + data.notAllowEditCount + '</div><div class="label">禁止修改</div></div>';
+        html += '<div class="stats-card"><div class="card-header"><div class="icon"><i class="fa fa-users"></i></div><span class="label">总报名人数</span></div><div class="num">' + data.total + '</div></div>';
+        html += '<div class="stats-card allow"><div class="card-header"><div class="icon"><i class="fa fa-unlock"></i></div><span class="label">允许修改</span></div><div class="num">' + data.allowEditCount + '</div></div>';
+        html += '<div class="stats-card deny"><div class="card-header"><div class="icon"><i class="fa fa-lock"></i></div><span class="label">禁止修改</span></div><div class="num">' + data.notAllowEditCount + '</div></div>';
         html += '</div>';
-        // 第二行：6条线路
+
+        // 第二行：6条线路（仅显示简称，放在首行像标题）
         var routes = Object.keys(data.routeCount || {}).sort(function(a, b) {
             var ia = routeOrder.findIndex(function(k) { return a.indexOf(k) !== -1; });
             var ib = routeOrder.findIndex(function(k) { return b.indexOf(k) !== -1; });
@@ -805,7 +824,12 @@
         });
         html += '<div class="stats-grid stats-grid-row2">';
         routes.forEach(function(r) {
-            html += '<div class="stats-card route"><div class="icon"><i class="fa fa-bus"></i></div><div class="num">' + data.routeCount[r] + '</div><div class="label">' + r + '</div></div>';
+            var short = '';
+            for (var k in routeShort) {
+                if (r.indexOf(k) !== -1) { short = routeShort[k]; break; }
+            }
+            if (!short) short = r;
+            html += '<div class="stats-card route"><div class="route-title">' + short + '</div><div class="num">' + data.routeCount[r] + '</div></div>';
         });
         html += '</div>';
         document.getElementById('statsCards').innerHTML = html;
