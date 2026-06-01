@@ -755,7 +755,7 @@
         if (start) filters.tellerNumberStart = start;
         if (end) filters.tellerNumberEnd = end;
 
-        var queryParams = '?token=' + encodeURIComponent(TOKEN);
+        var queryParams = '?token=' + encodeURIComponent(TOKEN) + '&pageSize=9999';
         if (route) queryParams += '&route=' + encodeURIComponent(route);
         if (month) queryParams += '&month=' + encodeURIComponent(month);
         if (signedUp) queryParams += '&signedUp=' + encodeURIComponent(signedUp);
