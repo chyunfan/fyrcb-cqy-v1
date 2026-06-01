@@ -19,9 +19,6 @@ module.exports = async (req, res) => {
     if (allowEdit !== '是' && allowEdit !== '否') {
         return res.status(400).json({ error: 'allowEdit 必须为"是"或"否"' });
     }
-    if (!filters || Object.keys(filters).length === 0) {
-        return res.status(400).json({ error: '请至少填写一个筛选条件' });
-    }
     if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return res.status(500).json({ error: 'Supabase 配置未设置' });
 
     try {
@@ -86,14 +83,14 @@ module.exports = async (req, res) => {
             updateQuery = updateQuery.lte('柜员号', parseInt(filters.tellerNumberEnd, 10));
         }
 
-        const { data: updatedData, error: updateError } = await updateQuery.select('id');
+        const { error: updateError } = await updateQuery;
 
         if (updateError) throw new Error('批量更新失败：' + updateError.message);
 
         res.status(200).json({
             success: true,
             matchedCount: matchedCount,
-            updatedCount: (updatedData || []).length
+            updatedCount: matchedCount
         });
 
     } catch (err) {

@@ -418,12 +418,12 @@
                 <div class="filter-row">
                     <select id="filterRoute">
                         <option value="">全部线路</option>
-                        <option>江西庐山 3天2晚</option>
-                        <option>福建厦门3天2晚。</option>
-                        <option>上海2天1晚。</option>
-                        <option>泰顺苍南2天1晚</option>
-                        <option>宁海1天</option>
-                        <option>台州椒江1天</option>
+                        <option value="1.江西庐山 3天2晚">1.江西</option>
+                        <option value="2.福建厦门3天2晚。">2.福建</option>
+                        <option value="3.上海2天1晚。">3.上海</option>
+                        <option value="4.泰顺苍南3天2晚。">4.泰顺</option>
+                        <option value="5.宁海">5.宁海</option>
+                        <option value="6.台州椒江3天2晚。">6.台州</option>
                     </select>
                     <select id="filterMonth">
                         <option value="">全部月份</option>
@@ -485,16 +485,16 @@
                         </div>
                     </div>
                     <div class="form-section">
-                        <div class="form-label"><i class="fa fa-filter"></i> 适用条件（至少填一个）</div>
+                        <div class="form-label"><i class="fa fa-filter"></i> 适用条件</div>
                         <div class="condition-row">
                             <select id="batchRoute">
                                 <option value="">全部线路</option>
-                                <option>江西庐山 3天2晚</option>
-                                <option>福建厦门3天2晚。</option>
-                                <option>上海2天1晚。</option>
-                                <option>泰顺苍南2天1晚</option>
-                                <option>宁海1天</option>
-                                <option>台州椒江1天</option>
+                                <option value="1.江西庐山 3天2晚">1.江西</option>
+                                <option value="2.福建厦门3天2晚。">2.福建</option>
+                                <option value="3.上海2天1晚。">3.上海</option>
+                                <option value="4.泰顺苍南3天2晚。">4.泰顺</option>
+                                <option value="5.宁海">5.宁海</option>
+                                <option value="6.台州椒江3天2晚。">6.台州</option>
                             </select>
                             <select id="batchMonth">
                                 <option value="">全部月份</option>
@@ -754,10 +754,6 @@
         if (month) filters.month = month;
         if (start) filters.tellerNumberStart = start;
         if (end) filters.tellerNumberEnd = end;
-
-        if (Object.keys(filters).length === 0) {
-            showToast('请至少填写一个筛选条件', 'error'); return;
-        }
 
         var queryParams = '?token=' + encodeURIComponent(TOKEN);
         if (route) queryParams += '&route=' + encodeURIComponent(route);
