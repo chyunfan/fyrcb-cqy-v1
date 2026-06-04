@@ -352,7 +352,7 @@
   </div>
 
   <script>
-    const API_BASE = '/api';
+    const API_BASE = '/api/exam-api';
     let adminToken = '';
 
     // 检查是否已登录
@@ -372,7 +372,7 @@
 
       // 验证token
       try {
-        const response = await fetch(`${API_BASE}/exam-stats?token=${token}`);
+        const response = await fetch(`${API_BASE}?action=stats&token=${token}`);
         if (!response.ok) {
           throw new Error('Token无效');
         }
@@ -412,7 +412,7 @@
     // 加载数据
     async function loadData() {
       try {
-        const response = await fetch(`${API_BASE}/exam-stats?token=${adminToken}`);
+        const response = await fetch(`${API_BASE}?action=stats&token=${adminToken}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -495,7 +495,7 @@
 
     // 导出数据
     function exportData() {
-      window.open(`${API_BASE}/exam-export?token=${adminToken}&format=csv`, '_blank');
+      window.open(`${API_BASE}?action=export&token=${adminToken}`, '_blank');
     }
 
     // 刷新数据

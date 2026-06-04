@@ -329,7 +329,7 @@
   </div>
 
   <script>
-    const API_BASE = '/api';
+    const API_BASE = '/api/exam-api';
     
     let currentTellerId = '';
     let currentName = '';
@@ -359,7 +359,7 @@
       btn.disabled = true;
 
       try {
-        const response = await fetch(`${API_BASE}/exam-lookup?tellerId=${tellerId}`);
+        const response = await fetch(`${API_BASE}?action=lookup&tellerId=${tellerId}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -381,8 +381,9 @@
           document.getElementById('registeredTime').textContent = new Date(data.registration.registeredAt).toLocaleString('zh-CN');
         }
 
-        // 加载场次信息
-        await loadSessions();
+        // 加载场次信息（从 lookup 响应中获取）
+        sessionStats = data.sessionStats || {};
+        renderSessions();
 
         document.getElementById('step1').classList.remove('active');
         document.getElementById('step2').classList.add('active');
@@ -395,23 +396,6 @@
       } finally {
         btn.innerHTML = '下一步';
         btn.disabled = false;
-      }
-    }
-
-    // 加载场次统计信息
-    async function loadSessions() {
-      try {
-        const response = await fetch(`${API_BASE}/exam-stats?token=${getAdminToken()}`);
-        const data = await response.json();
-
-        if (response.ok && data.sessionStats) {
-          sessionStats = data.sessionStats;
-        }
-
-        renderSessions();
-      } catch (error) {
-        console.error('加载场次信息失败:', error);
-        renderSessions(); // 仍然渲染，但不显示人数
       }
     }
 
@@ -460,10 +444,11 @@
       btn.disabled = true;
 
       try {
-        const response = await fetch(`${API_BASE}/exam-register`, {
+        const response = await fetch(`${API_BASE}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            action: 'register',
             tellerId: currentTellerId,
             session: session.value
           })
@@ -519,13 +504,6 @@
       const msg = document.getElementById('message');
       msg.innerHTML = text;
       msg.className = `message ${type}`;
-    }
-
-    // 获取管理员token（用于查询统计）
-    function getAdminToken() {
-      // 从URL参数获取token，或者从localStorage获取
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get('token') || localStorage.getItem('adminToken') || '';
     }
 
     // 回车键提交
