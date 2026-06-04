@@ -76,10 +76,25 @@
       align-items: center;
     }
 
-    .session-options {
+    .session-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .session-col h4 {
+      text-align: center;
+      color: #667eea;
+      font-size: 16px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e8e8f0;
+    }
+
+    .session-col .session-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .session-option {
@@ -91,13 +106,34 @@
     }
 
     .session-option label {
-      display: block;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
       padding: 16px;
       border: 2px solid #e0e0e0;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s;
       margin: 0;
+    }
+
+    /* 自定义单选圆点 */
+    .session-option label::before {
+      content: '';
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      margin-top: 2px;
+      transition: all 0.2s;
+      background: #fff;
+    }
+
+    .session-option input[type="radio"]:checked + label::before {
+      border-color: #667eea;
+      background: #667eea;
+      box-shadow: inset 0 0 0 4px #fff;
     }
 
     .session-option input[type="radio"]:checked + label {
@@ -136,6 +172,22 @@
       background: #f5f5f5;
       cursor: not-allowed;
       opacity: 0.6;
+    }
+
+    .session-option.disabled label::before {
+      border-color: #f44336;
+      background: #ffebee;
+    }
+
+    .full-badge {
+      background: #f44336;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-left: auto;
+      align-self: center;
     }
 
     button {
@@ -310,14 +362,16 @@
       </div>
 
       <div class="form-group">
-        <label>部门</label>
-        <div class="name-display" id="displayDept"></div>
-      </div>
-
-      <div class="form-group">
         <label>选择考试场次</label>
-        <div class="session-options" id="sessionOptions">
-          <!-- 动态加载场次选项 -->
+        <div class="session-columns">
+          <div class="session-col" id="col0625">
+            <h4>6月25日</h4>
+            <div class="session-list" id="list0625"></div>
+          </div>
+          <div class="session-col" id="col0626">
+            <h4>6月26日</h4>
+            <div class="session-list" id="list0626"></div>
+          </div>
         </div>
       </div>
 
@@ -372,7 +426,6 @@
         // 显示第二步
         document.getElementById('displayTellerId').textContent = tellerId;
         document.getElementById('displayName').textContent = data.name;
-        document.getElementById('displayDept').textContent = data.department || '未设置';
 
         // 如果已报名，显示报名信息
         if (data.alreadyRegistered) {
@@ -399,34 +452,40 @@
       }
     }
 
-    // 渲染场次选项
+    // 渲染场次选项（两列：6/25 左，6/26 右）
     function renderSessions() {
-      const container = document.getElementById('sessionOptions');
-      container.innerHTML = '';
+      const list0625 = document.getElementById('list0625');
+      const list0626 = document.getElementById('list0626');
+      list0625.innerHTML = '';
+      list0626.innerHTML = '';
 
       SESSIONS.forEach(session => {
         const stats = sessionStats[session.value] || { count: 0, limit: 30, remaining: 30 };
         const isFull = stats.count >= 30;
         const percentage = (stats.count / 30) * 100;
+        const is0625 = session.date === '6月25日';
+        const target = is0625 ? list0625 : list0626;
 
         const div = document.createElement('div');
         div.className = `session-option ${isFull ? 'disabled' : ''}`;
         div.innerHTML = `
           <input type="radio" id="${session.id}" name="session" value="${session.value}" ${isFull ? 'disabled' : ''}>
           <label for="${session.id}">
-            <div class="session-date">${session.date} 第${session.id.replace('session', '')}场</div>
-            <div class="session-time">${session.time}</div>
-            <div style="font-size: 12px; color: #999; margin-top: 4px;">
-              已报名：${stats.count}/30人
-              ${isFull ? '<span class="session-full">（已满）</span>' : ''}
+            <div>
+              <div class="session-date">第${session.id.replace('session', '')}场</div>
+              <div class="session-time">${session.time}</div>
+              <div style="font-size: 12px; color: #999; margin-top: 4px;">
+                已报名：${stats.count}/30人
+              </div>
+              <div class="capacity-bar">
+                <div class="capacity-fill ${percentage >= 90 ? 'full' : percentage >= 70 ? 'warning' : ''}" 
+                     style="width: ${percentage}%"></div>
+              </div>
             </div>
-            <div class="capacity-bar">
-              <div class="capacity-fill ${percentage >= 90 ? 'full' : percentage >= 70 ? 'warning' : ''}" 
-                   style="width: ${percentage}%"></div>
-            </div>
+            ${isFull ? '<span class="full-badge">已满</span>' : ''}
           </label>
         `;
-        container.appendChild(div);
+        target.appendChild(div);
       });
     }
 
