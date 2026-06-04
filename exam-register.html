@@ -472,8 +472,7 @@
           <input type="radio" id="${session.id}" name="session" value="${session.value}" ${isFull ? 'disabled' : ''}>
           <label for="${session.id}">
             <div>
-              <div class="session-date">第${session.id.replace('session', '')}场</div>
-              <div class="session-time">${session.time}</div>
+              <div class="session-date">${session.value}</div>
               <div style="font-size: 12px; color: #999; margin-top: 4px;">
                 已报名：${stats.count}/30人
               </div>
