@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026年反假币考试报名</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .name-display {
+      padding: 12px 16px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      color: #333;
+      font-size: 16px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+    }
+
+    .session-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .session-option {
+      position: relative;
+    }
+
+    .session-option input[type="radio"] {
+      display: none;
+    }
+
+    .session-option label {
+      display: block;
+      padding: 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 0;
+    }
+
+    .session-option input[type="radio"]:checked + label {
+      border-color: #667eea;
+      background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    .session-option label:hover {
+      border-color: #667eea;
+    }
+
+    .session-date {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .session-time {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .session-option input[type="radio"]:checked + label .session-time {
+      color: #667eea;
+    }
+
+    .session-full {
+      color: #f44336;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .session-option.disabled label {
+      background: #f5f5f5;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      display: block;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      display: block;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .step {
+      display: none;
+    }
+
+    .step.active {
+      display: block;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      gap: 10px;
+    }
+
+    .step-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .step-dot.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .step-dot.completed {
+      background: #4caf50;
+      color: white;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #1976d2;
+    }
+
+    .capacity-bar {
+      width: 100%;
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .capacity-fill {
+      height: 100%;
+      background: #4caf50;
+      transition: width 0.3s;
+    }
+
+    .capacity-fill.warning {
+      background: #ff9800;
+    }
+
+    .capacity-fill.full {
+      background: #f44336;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>2026年反假币考试报名</h1>
+    <div class="subtitle">请使用柜员号登录</div>
+
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot1">1</div>
+      <div class="step-dot" id="dot2">2</div>
+    </div>
+
+    <!-- 步骤1：输入柜员号 -->
+    <div class="step active" id="step1">
+      <div class="form-group">
+        <label for="tellerId">柜员号</label>
+        <input type="text" id="tellerId" placeholder="请输入您的柜员号" autocomplete="off">
+      </div>
+      <button onclick="verifyTeller()">下一步</button>
+    </div>
+
+    <!-- 步骤2：填写报名信息 -->
+    <div class="step" id="step2">
+      <div id="alreadyRegistered" style="display:none;">
+        <div class="info-box">
+          ⚠️ 您已报名，无需重复报名<br>
+          报名场次：<strong id="registeredSession"></strong><br>
+          报名时间：<span id="registeredTime"></span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>柜员号</label>
+        <div class="name-display" id="displayTellerId"></div>
+      </div>
+
+      <div class="form-group">
+        <label>姓名</label>
+        <div class="name-display" id="displayName"></div>
+      </div>
+
+      <div class="form-group">
+        <label>部门</label>
+        <div class="name-display" id="displayDept"></div>
+      </div>
+
+      <div class="form-group">
+        <label>选择考试场次</label>
+        <div class="session-options" id="sessionOptions">
+          <!-- 动态加载场次选项 -->
+        </div>
+      </div>
+
+      <button onclick="submitRegistration()">提交报名</button>
+      <button onclick="goBack()" style="background: #999; margin-top: 10px;">返回修改</button>
+    </div>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    const API_BASE = '/api';
+    
+    let currentTellerId = '';
+    let currentName = '';
+    let sessionStats = {};
+
+    // 场次定义
+    const SESSIONS = [
+      { id: 'session1', value: '6月25日第1场 15:40开始', date: '6月25日', time: '15:40 开始' },
+      { id: 'session2', value: '6月25日第2场 18:20开始', date: '6月25日', time: '18:20 开始' },
+      { id: 'session3', value: '6月25日第3场 19:40开始', date: '6月25日', time: '19:40 开始' },
+      { id: 'session4', value: '6月26日第1场 15:40开始', date: '6月26日', time: '15:40 开始' },
+      { id: 'session5', value: '6月26日第2场 18:20开始', date: '6月26日', time: '18:20 开始' },
+      { id: 'session6', value: '6月26日第3场 19:40开始', date: '6月26日', time: '19:40 开始' }
+    ];
+
+    // 验证柜员号
+    async function verifyTeller() {
+      const tellerId = document.getElementById('tellerId').value.trim();
+      
+      if (!tellerId) {
+        showMessage('请输入柜员号', 'error');
+        return;
+      }
+
+      const btn = event.target;
+      btn.innerHTML = '<div class="loading"></div>';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_BASE}/exam-lookup?tellerId=${tellerId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || '验证失败');
+        }
+
+        currentTellerId = tellerId;
+        currentName = data.name;
+
+        // 显示第二步
+        document.getElementById('displayTellerId').textContent = tellerId;
+        document.getElementById('displayName').textContent = data.name;
+        document.getElementById('displayDept').textContent = data.department || '未设置';
+
+        // 如果已报名，显示报名信息
+        if (data.alreadyRegistered) {
+          document.getElementById('alreadyRegistered').style.display = 'block';
+          document.getElementById('registeredSession').textContent = data.registration.session;
+          document.getElementById('registeredTime').textContent = new Date(data.registration.registeredAt).toLocaleString('zh-CN');
+        }
+
+        // 加载场次信息
+        await loadSessions();
+
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        document.getElementById('dot1').classList.remove('active');
+        document.getElementById('dot1').classList.add('completed');
+        document.getElementById('dot2').classList.add('active');
+
+      } catch (error) {
+        showMessage(error.message, 'error');
+      } finally {
+        btn.innerHTML = '下一步';
+        btn.disabled = false;
+      }
+    }
+
+    // 加载场次统计信息
+    async function loadSessions() {
+      try {
+        const response = await fetch(`${API_BASE}/exam-stats?token=${getAdminToken()}`);
+        const data = await response.json();
+
+        if (response.ok && data.sessionStats) {
+          sessionStats = data.sessionStats;
+        }
+
+        renderSessions();
+      } catch (error) {
+        console.error('加载场次信息失败:', error);
+        renderSessions(); // 仍然渲染，但不显示人数
+      }
+    }
+
+    // 渲染场次选项
+    function renderSessions() {
+      const container = document.getElementById('sessionOptions');
+      container.innerHTML = '';
+
+      SESSIONS.forEach(session => {
+        const stats = sessionStats[session.value] || { count: 0, limit: 30, remaining: 30 };
+        const isFull = stats.count >= 30;
+        const percentage = (stats.count / 30) * 100;
+
+        const div = document.createElement('div');
+        div.className = `session-option ${isFull ? 'disabled' : ''}`;
+        div.innerHTML = `
+          <input type="radio" id="${session.id}" name="session" value="${session.value}" ${isFull ? 'disabled' : ''}>
+          <label for="${session.id}">
+            <div class="session-date">${session.date} 第${session.id.replace('session', '')}场</div>
+            <div class="session-time">${session.time}</div>
+            <div style="font-size: 12px; color: #999; margin-top: 4px;">
+              已报名：${stats.count}/30人
+              ${isFull ? '<span class="session-full">（已满）</span>' : ''}
+            </div>
+            <div class="capacity-bar">
+              <div class="capacity-fill ${percentage >= 90 ? 'full' : percentage >= 70 ? 'warning' : ''}" 
+                   style="width: ${percentage}%"></div>
+            </div>
+          </label>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // 提交报名
+    async function submitRegistration() {
+      const session = document.querySelector('input[name="session"]:checked');
+      
+      if (!session) {
+        showMessage('请选择考试场次', 'error');
+        return;
+      }
+
+      const btn = event.target;
+      btn.innerHTML = '<div class="loading"></div>';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_BASE}/exam-register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tellerId: currentTellerId,
+            session: session.value
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || '提交失败');
+        }
+
+        showMessage(`报名成功！<br>柜员号：${currentTellerId}<br>姓名：${currentName}<br>场次：${session.value}`, 'success');
+        
+        // 3秒后重置表单
+        setTimeout(() => {
+          resetForm();
+        }, 3000);
+
+      } catch (error) {
+        showMessage(error.message, 'error');
+      } finally {
+        btn.innerHTML = '提交报名';
+        btn.disabled = false;
+      }
+    }
+
+    // 返回上一步
+    function goBack() {
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step1').classList.add('active');
+      document.getElementById('dot2').classList.remove('active');
+      document.getElementById('dot1').classList.remove('completed');
+      document.getElementById('dot1').classList.add('active');
+    }
+
+    // 重置表单
+    function resetForm() {
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step1').classList.add('active');
+      document.getElementById('dot2').classList.remove('active');
+      document.getElementById('dot1').classList.remove('completed');
+      document.getElementById('dot1').classList.add('active');
+      document.getElementById('tellerId').value = '';
+      document.querySelectorAll('input[name="session"]').forEach(r => r.checked = false);
+      document.getElementById('message').className = 'message';
+      document.getElementById('alreadyRegistered').style.display = 'none';
+      currentTellerId = '';
+      currentName = '';
+    }
+
+    // 显示消息
+    function showMessage(text, type) {
+      const msg = document.getElementById('message');
+      msg.innerHTML = text;
+      msg.className = `message ${type}`;
+    }
+
+    // 获取管理员token（用于查询统计）
+    function getAdminToken() {
+      // 从URL参数获取token，或者从localStorage获取
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('token') || localStorage.getItem('adminToken') || '';
+    }
+
+    // 回车键提交
+    document.getElementById('tellerId').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        verifyTeller();
+      }
+    });
+  </script>
+</body>
+</html>
