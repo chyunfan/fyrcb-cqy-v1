@@ -296,12 +296,6 @@
       <!-- 统计卡片 -->
       <div class="stats-grid">
         <div class="stat-card">
-          <h3>总员工数</h3>
-          <div class="value" id="totalEmployees">-</div>
-          <div class="subtitle">应报名人数</div>
-        </div>
-
-        <div class="stat-card">
           <h3>已报名人数</h3>
           <div class="value" id="totalRegistered">-</div>
           <div class="subtitle">报名率：<span id="registrationRate">-</span></div>
@@ -423,7 +417,6 @@
         }
 
         // 更新统计卡片
-        document.getElementById('totalEmployees').textContent = data.totalEmployees;
         document.getElementById('totalRegistered').textContent = data.totalRegistered;
         document.getElementById('registrationRate').textContent = data.registrationRate;
 
