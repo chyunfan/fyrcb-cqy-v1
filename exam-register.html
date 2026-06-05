@@ -399,6 +399,7 @@
     let currentTellerId = '';
     let currentName = '';
     let sessionStats = {};
+    let isAlreadyRegistered = false; // 是否已报名（用于判断提交 vs 修改）
     let deadline = '2026-06-15';
     let isAfterDeadline = false;
 
@@ -455,17 +456,24 @@
 
         // 如果已报名，显示报名信息
         if (data.alreadyRegistered) {
+          isAlreadyRegistered = true;
           document.getElementById('alreadyRegistered').style.display = 'block';
           document.getElementById('registeredSession').textContent = data.registration.session;
           document.getElementById('registeredTime').textContent = new Date(data.registration.registeredAt).toLocaleString('zh-CN');
           
-          // 如果超过截止日期，只能查看不能修改
           if (isAfterDeadline) {
+            // 超过截止日期：只能查看不能修改
             showMessage('报名已截止（截止日期：' + deadline + '），您已报名该场次，无法修改。', 'error');
             document.querySelector('button[onclick="submitRegistration()"]').style.display = 'none';
             document.querySelector('button[onclick="goBack()"]').textContent = '返回';
+          } else {
+            // 未截止：允许修改
+            document.getElementById('alreadyRegistered').innerHTML = 
+              '您已报名场次：<strong>' + data.registration.session + '</strong>，可重新选择场次后提交修改';
+            document.querySelector('button[onclick="submitRegistration()"]').textContent = '修改报名';
           }
         } else {
+          isAlreadyRegistered = false;
           // 未报名，检查是否超过截止日期
           if (isAfterDeadline) {
             showMessage('报名已截止（截止日期：' + deadline + '），无法报名。', 'error');
@@ -570,7 +578,7 @@
           if (d.sessionStats) sessionStats = d.sessionStats;
         } catch(e) { console.error('刷新统计失败', e); }
 
-        showMessage('报名成功！<br>柜员号：' + currentTellerId + '<br>姓名：' + currentName + '<br>场次：' + session.value, 'success');
+        showMessage((isAlreadyRegistered ? '修改成功' : '报名成功') + '！<br>柜员号：' + currentTellerId + '<br>姓名：' + currentName + '<br>场次：' + session.value, 'success');
 
         // 3秒后重置表单
         setTimeout(function() {
@@ -580,7 +588,7 @@
       } catch (error) {
         showMessage(error.message, 'error');
       } finally {
-        btn.innerHTML = '提交报名';
+        btn.innerHTML = isAlreadyRegistered ? '修改报名' : '提交报名';
         btn.disabled = false;
       }
     }
@@ -605,8 +613,10 @@
       document.querySelectorAll('input[name="session"]').forEach(function(r) { r.checked = false; });
       document.getElementById('message').className = 'message';
       document.getElementById('alreadyRegistered').style.display = 'none';
+      document.querySelector('button[onclick="submitRegistration()"]').textContent = '提交报名';
       currentTellerId = '';
       currentName = '';
+      isAlreadyRegistered = false;
     }
 
     // 显示消息
