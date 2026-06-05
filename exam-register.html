@@ -288,6 +288,16 @@
       color: white;
     }
 
+    .info-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .info-row .form-group {
+      margin-bottom: 0;
+    }
+
     .info-box {
       background: #e3f2fd;
       border-left: 4px solid #2196f3;
@@ -351,14 +361,15 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label>柜员号</label>
-        <div class="name-display" id="displayTellerId"></div>
-      </div>
-
-      <div class="form-group">
-        <label>姓名</label>
-        <div class="name-display" id="displayName"></div>
+      <div class="info-row">
+        <div class="form-group">
+          <label>柜员号</label>
+          <div class="name-display" id="displayTellerId"></div>
+        </div>
+        <div class="form-group">
+          <label>姓名</label>
+          <div class="name-display" id="displayName"></div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -460,9 +471,10 @@
       list0626.innerHTML = '';
 
       SESSIONS.forEach(session => {
-        const stats = sessionStats[session.value] || { count: 0, limit: 30, remaining: 30 };
-        const isFull = stats.count >= 30;
-        const percentage = (stats.count / 30) * 100;
+        const raw = sessionStats[session.value];
+        const count = typeof raw === 'number' ? raw : (raw?.count || 0);
+        const isFull = count >= 30;
+        const percentage = (count / 30) * 100;
         const is0625 = session.date === '6月25日';
         const target = is0625 ? list0625 : list0626;
 
@@ -474,7 +486,7 @@
             <div>
               <div class="session-date">${session.value}</div>
               <div style="font-size: 12px; color: #999; margin-top: 4px;">
-                已报名：${stats.count}/30人
+                已报名：${count}/30人
               </div>
               <div class="capacity-bar">
                 <div class="capacity-fill ${percentage >= 90 ? 'full' : percentage >= 70 ? 'warning' : ''}" 
