@@ -355,7 +355,7 @@
     <div class="step" id="step2">
       <div id="alreadyRegistered" style="display:none;">
         <div class="info-box">
-          ?? 您已报名，无需重复报名<br>
+          您已报名，无需重复报名<br>
           报名场次：<strong id="registeredSession"></strong><br>
           报名时间：<span id="registeredTime"></span>
         </div>
@@ -461,14 +461,14 @@
           
           // 如果超过截止日期，只能查看不能修改
           if (isAfterDeadline) {
-            showMessage('?? 报名已截止（截止日期：' + deadline + '），您已报名该场次，无法修改。', 'error');
+            showMessage('报名已截止（截止日期：' + deadline + '），您已报名该场次，无法修改。', 'error');
             document.querySelector('button[onclick="submitRegistration()"]').style.display = 'none';
             document.querySelector('button[onclick="goBack()"]').textContent = '返回';
           }
         } else {
           // 未报名，检查是否超过截止日期
           if (isAfterDeadline) {
-            showMessage('?? 报名已截止（截止日期：' + deadline + '），无法报名。', 'error');
+            showMessage('报名已截止（截止日期：' + deadline + '），无法报名。', 'error');
             return;
           }
         }
@@ -531,7 +531,7 @@
     async function submitRegistration() {
       // 检查是否超过截止日期
       if (isAfterDeadline) {
-        showMessage('?? 报名已截止（截止日期：' + deadline + '），无法提交。', 'error');
+        showMessage('报名已截止（截止日期：' + deadline + '），无法提交。', 'error');
         return;
       }
 
