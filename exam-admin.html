@@ -308,15 +308,18 @@
         </div>
 
         <div class="stat-card">
-          <h3>未报名人数</h3>
-          <div class="value" id="notRegistered">-</div>
-          <div class="subtitle">待报名</div>
-        </div>
-
-        <div class="stat-card">
           <h3>报名场次</h3>
           <div class="value" id="totalSessions">6</div>
           <div class="subtitle">共6个场次</div>
+        </div>
+
+        <div class="stat-card">
+          <h3>报名截止日</h3>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+            <input type="date" id="deadlineInput" style="padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            <button class="btn btn-primary" style="padding: 6px 12px; font-size: 13px;" onclick="saveDeadline()">保存</button>
+          </div>
+          <div class="subtitle" style="margin-top: 6px;">点击保存修改截止日</div>
         </div>
       </div>
 
@@ -422,8 +425,10 @@
         // 更新统计卡片
         document.getElementById('totalEmployees').textContent = data.totalEmployees;
         document.getElementById('totalRegistered').textContent = data.totalRegistered;
-        document.getElementById('notRegistered').textContent = data.notRegistered;
         document.getElementById('registrationRate').textContent = data.registrationRate;
+
+        // 加载截止日期
+        loadDeadline();
 
         // 更新场次统计
         renderSessionStats(data.sessionStats);
@@ -433,6 +438,47 @@
 
       } catch (error) {
         showError(error.message);
+      }
+    }
+
+    // 加载截止日期
+    async function loadDeadline() {
+      try {
+        const response = await fetch(`${API_BASE}?action=get-deadline`);
+        const data = await response.json();
+        if (data.deadline) {
+          document.getElementById('deadlineInput').value = data.deadline;
+        }
+      } catch (e) {
+        console.error('加载截止日期失败', e);
+      }
+    }
+
+    // 保存截止日期
+    async function saveDeadline() {
+      const deadline = document.getElementById('deadlineInput').value;
+      if (!deadline) {
+        showError('请选择截止日期');
+        return;
+      }
+      try {
+        const response = await fetch(`${API_BASE}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'set-deadline',
+            token: adminToken,
+            deadline: deadline
+          })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert('截止日期已更新！');
+        } else {
+          showError(data.error || '保存失败');
+        }
+      } catch (e) {
+        showError('保存失败：' + e.message);
       }
     }
 

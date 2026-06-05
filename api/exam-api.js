@@ -3,12 +3,15 @@
 // POST /api/exam-api  body: { action: "register", tellerId, session }
 // GET  /api/exam-api?action=stats&token=xxx
 // GET  /api/exam-api?action=export&token=xxx
+// GET  /api/exam-api?action=get-deadline
+// POST /api/exam-api  body: { action: "set-deadline", token, deadline }
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 const SESSION_LIMIT = 30;
+const DEFAULT_DEADLINE = '2026-06-15'; // 默认截止日期
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -45,6 +48,10 @@ module.exports = async (req, res) => {
                 return await handleStats(supabase, res, token);
             case 'export':
                 return await handleExport(supabase, res, token);
+            case 'get-deadline':
+                return await handleGetDeadline(supabase, res);
+            case 'set-deadline':
+                return await handleSetDeadline(supabase, res, token, session);
             default:
                 return res.status(400).json({ error: '无效的 action 参数' });
         }
@@ -104,6 +111,20 @@ async function handleLookup(supabase, res, tellerId) {
 // === 提交报名 ===
 async function handleRegister(supabase, res, tellerId, session) {
     if (!tellerId || !session) return res.status(400).json({ error: '缺少必填参数' });
+
+    // 检查是否超过截止日期
+    const { data: deadlineData } = await supabase
+        .from('exam_config')
+        .select('value')
+        .eq('key', 'deadline')
+        .single();
+
+    const deadline = deadlineData?.value || DEFAULT_DEADLINE;
+    const today = new Date().toISOString().split('T')[0];
+
+    if (today > deadline) {
+        return res.status(400).json({ error: `报名已截止（截止日期：${deadline}）` });
+    }
 
     // 验证柜员号
     const { data: empData, error: empError } = await supabase
@@ -166,7 +187,6 @@ async function handleStats(supabase, res, token) {
     if (regError) throw new Error('查询报名数据失败：' + regError.message);
 
     const totalRegistered = regData.length;
-    const notRegistered = totalEmployees - totalRegistered;
 
     // 各场次报名人数
     const sessionCount = {};
@@ -212,7 +232,6 @@ async function handleStats(supabase, res, token) {
         success: true,
         totalEmployees,
         totalRegistered,
-        notRegistered,
         registrationRate: totalEmployees > 0 ? ((totalRegistered / totalEmployees) * 100).toFixed(2) + '%' : '0%',
         sessionStats,
         recentRegistrations: recent
@@ -265,3 +284,68 @@ async function handleExport(supabase, res, token) {
     res.setHeader('Content-Disposition', 'attachment; filename="exam-registration.csv"');
     return res.status(200).send(csv);
 }
+
+// === 获取截止日期 ===
+async function handleGetDeadline(supabase, res) {
+    try {
+        const { data, error } = await supabase
+            .from('exam_config')
+            .select('value')
+            .eq('key', 'deadline')
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+            // 表可能不存在，返回默认值
+            return res.status(200).json({ deadline: DEFAULT_DEADLINE });
+        }
+
+        return res.status(200).json({ deadline: data?.value || DEFAULT_DEADLINE });
+    } catch (err) {
+        return res.status(200).json({ deadline: DEFAULT_DEADLINE });
+    }
+}
+
+// === 设置截止日期 ===
+async function handleSetDeadline(supabase, res, token, deadline) {
+    if (token !== ADMIN_TOKEN) return res.status(401).json({ error: '无权限' });
+
+    if (!deadline) {
+        return res.status(400).json({ error: '缺少截止日期参数' });
+    }
+
+    // 验证日期格式
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
+        return res.status(400).json({ error: '日期格式错误，应为 YYYY-MM-DD' });
+    }
+
+    try {
+        // 尝试更新
+        const { data: updateData, error: updateError } = await supabase
+            .from('exam_config')
+            .update({ value: deadline, updated_at: new Date().toISOString() })
+            .eq('key', 'deadline')
+            .select()
+            .single();
+
+        if (updateData) {
+            return res.status(200).json({ success: true, deadline: deadline });
+        }
+
+        // 如果更新失败（记录不存在），则插入
+        const { data: insertData, error: insertError } = await supabase
+            .from('exam_config')
+            .insert([{ key: 'deadline', value: deadline, updated_at: new Date().toISOString() }])
+            .select()
+            .single();
+
+        if (insertError) {
+            throw new Error('保存截止日期失败：' + insertError.message);
+        }
+
+        return res.status(200).json({ success: true, deadline: deadline });
+    } catch (err) {
+        console.error('设置截止日期错误:', err);
+        return res.status(500).json({ error: err.message });
+    }
+}
+
