@@ -8,7 +8,7 @@ const PORT = parseInt(process.env.PORT) || 3000;
 // ========== Supabase 配置（只从环境变量读取）==========
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || '';
-// =============================================================
+// ================================================================
 
 const HEADERS = {
   'Content-Type': 'application/json',
@@ -17,9 +17,14 @@ const HEADERS = {
 };
 
 // ---------- Supabase REST API 工具 ----------
-function supabaseRequest(path, method, body) {
+function supabaseRequest(p, method, body) {
   return new Promise((resolve, reject) => {
-    const url = SUPABASE_URL + '/rest/v1/' + path;
+    // 环境变量预检
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      return reject(new Error('SUPABASE_URL 或 SUPABASE_ANON_KEY 未配置！请在环境变量中设置。'));
+    }
+    const base = SUPABASE_URL.replace(/\/+$/, '');
+    const url = base + '/rest/v1/' + p;
     const bodyStr = body ? JSON.stringify(body) : '';
     const u = new URL(url);
     const options = {
@@ -28,7 +33,7 @@ function supabaseRequest(path, method, body) {
       method: method,
       headers: {
         ...HEADERS,
-        'Content-Length': body ? Buffer.byteLength(bodyStr) : 0,
+        'Content-Length': Buffer.byteLength(bodyStr),
       },
     };
     const req = https.request(options, res => {
@@ -36,7 +41,7 @@ function supabaseRequest(path, method, body) {
       res.on('data', c => d += c);
       res.on('end', () => {
         try { resolve({ status: res.statusCode, data: JSON.parse(d) }); }
-        catch { resolve({ status: res.statusCode, data: d }); }
+        catch(e) { resolve({ status: res.statusCode, data: d }); }
       });
     });
     req.on('error', reject);
@@ -76,7 +81,7 @@ function readBody(req) {
   return new Promise(resolve => {
     let body = '';
     req.on('data', c => body += c);
-    req.on('end', () => { try { resolve(JSON.parse(body)); } catch { resolve({}); } });
+    req.on('end', () => { try { resolve(JSON.parse(body)); } catch(e) { resolve({}); } });
   });
 }
 
@@ -95,6 +100,17 @@ function sendFile(res, filePath, contentType) {
 
 // ---------- HTTP 服务 ----------
 const server = http.createServer(async (req, res) => {
+  // 处理 CORS 预检请求
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    });
+    res.end();
+    return;
+  }
+
   const urlObj = new URL(req.url, `http://${req.headers.host}`);
   const pathname = urlObj.pathname;
 
@@ -199,11 +215,12 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // 静态文件
+  // 静态文件路由
   let filePath;
-  if (pathname === '/' || pathname === '/index.html') filePath = 'public/index.html';
-  else if (pathname === '/admin' || pathname === '/admin.html') filePath = 'public/admin.html';
-  else filePath = pathname.slice(1);
+  const cleanPath = pathname === '/' ? '/survey-index.html' : pathname;
+  if (cleanPath === '/survey-index.html' || cleanPath === '/survey-index') filePath = 'public/survey-index.html';
+  else if (cleanPath === '/survey-admin.html' || cleanPath === '/survey-admin' || cleanPath === '/admin') filePath = 'public/survey-admin.html';
+  else filePath = cleanPath.slice(1);
 
   const fullPath = path.join(__dirname, filePath);
   const ext = path.extname(fullPath);
@@ -214,9 +231,11 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   if (!SUPABASE_URL || !SUPABASE_KEY) {
+    console.warn('');
     console.warn('⚠️  警告：SUPABASE_URL 或 SUPABASE_ANON_KEY 未配置，提交功能将不可用！');
     console.warn('   请设置环境变量：');
     console.warn('   export SUPABASE_URL=https://xxx.supabase.co');
     console.warn('   export SUPABASE_ANON_KEY=你的anon_key');
+    console.warn('');
   }
 });

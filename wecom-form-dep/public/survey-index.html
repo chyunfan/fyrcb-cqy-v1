@@ -247,8 +247,8 @@
 
 <script>
   // ========== LocalStorage + Cookie 双保险 ==========
-  const STORAGE_KEY = 'survey_submitted_2026';
-  const COOKIE_KEY = 'survey_submitted_2026';
+  const _STORAGE_KEY = 'survey_submitted_2026';
+  const _COOKIE_KEY = 'survey_submitted_2026';
 
   function getCookie(name) {
     const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]*)'));
@@ -263,15 +263,15 @@
 
   // 检查本地是否已提交
   function hasLocalSubmitted() {
-    if (localStorage.getItem(STORAGE_KEY) === '1') return true;
-    if (getCookie(COOKIE_KEY) === '1') return true;
+    if (localStorage.getItem(_STORAGE_KEY) === '1') return true;
+    if (getCookie(_COOKIE_KEY) === '1') return true;
     return false;
   }
 
   // 标记本地已提交
   function markLocalSubmitted() {
-    try { localStorage.setItem(STORAGE_KEY, '1'); } catch(e) {}
-    setCookie(COOKIE_KEY, '1', 365);
+    try { localStorage.setItem(_STORAGE_KEY, '1'); } catch(e) {}
+    setCookie(_COOKIE_KEY, '1', 365);
   }
 
   // ========== 初始化 ==========
