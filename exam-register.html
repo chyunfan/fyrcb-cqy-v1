@@ -335,12 +335,6 @@
 <body>
   <div class="container">
     <h1>2026年反假币考试报名</h1>
-    <div class="subtitle">请使用柜员号登录</div>
-
-    <div class="step-indicator">
-      <div class="step-dot active" id="dot1">1</div>
-      <div class="step-dot" id="dot2">2</div>
-    </div>
 
     <!-- 步骤1：输入柜员号 -->
     <div class="step active" id="step1">
@@ -348,18 +342,11 @@
         <label for="tellerId">柜员号</label>
         <input type="text" id="tellerId" placeholder="请输入您的柜员号" autocomplete="off">
       </div>
-      <button onclick="verifyTeller()">下一步</button>
+      <button onclick="verifyTeller()">去报名</button>
     </div>
 
     <!-- 步骤2：填写报名信息 -->
     <div class="step" id="step2">
-      <div id="alreadyRegistered" style="display:none;">
-        <div class="info-box">
-          您已报名，无需重复报名<br>
-          报名场次：<strong id="registeredSession"></strong><br>
-          报名时间：<span id="registeredTime"></span>
-        </div>
-      </div>
 
       <div class="info-row">
         <div class="form-group">
@@ -387,7 +374,6 @@
       </div>
 
       <button onclick="submitRegistration()">提交报名</button>
-      <button onclick="goBack()" style="background: #999; margin-top: 10px;">返回修改</button>
     </div>
 
     <div class="message" id="message"></div>
@@ -454,22 +440,14 @@
         document.getElementById('displayTellerId').textContent = tellerId;
         document.getElementById('displayName').textContent = data.name;
 
-        // 如果已报名，显示报名信息
+        // 如果已报名
         if (data.alreadyRegistered) {
           isAlreadyRegistered = true;
-          document.getElementById('alreadyRegistered').style.display = 'block';
-          document.getElementById('registeredSession').textContent = data.registration.session;
-          document.getElementById('registeredTime').textContent = new Date(data.registration.registeredAt).toLocaleString('zh-CN');
           
           if (isAfterDeadline) {
-            // 超过截止日期：只能查看不能修改
-            showMessage('报名已截止（截止日期：' + deadline + '），您已报名该场次，无法修改。', 'error');
+            showMessage('报名已截止（截止日期：' + deadline + '），无法修改。', 'error');
             document.querySelector('button[onclick="submitRegistration()"]').style.display = 'none';
-            document.querySelector('button[onclick="goBack()"]').textContent = '返回';
           } else {
-            // 未截止：允许修改
-            document.getElementById('alreadyRegistered').innerHTML = 
-              '您已报名场次：<strong>' + data.registration.session + '</strong>，可重新选择场次后提交修改';
             document.querySelector('button[onclick="submitRegistration()"]').textContent = '修改报名';
           }
         } else {
@@ -487,14 +465,11 @@
 
         document.getElementById('step1').classList.remove('active');
         document.getElementById('step2').classList.add('active');
-        document.getElementById('dot1').classList.remove('active');
-        document.getElementById('dot1').classList.add('completed');
-        document.getElementById('dot2').classList.add('active');
 
       } catch (error) {
         showMessage(error.message, 'error');
       } finally {
-        btn.innerHTML = '下一步';
+        btn.innerHTML = '去报名';
         btn.disabled = false;
       }
     }
@@ -593,26 +568,13 @@
       }
     }
 
-    // 返回上一步
-    function goBack() {
-      document.getElementById('step2').classList.remove('active');
-      document.getElementById('step1').classList.add('active');
-      document.getElementById('dot2').classList.remove('active');
-      document.getElementById('dot1').classList.remove('completed');
-      document.getElementById('dot1').classList.add('active');
-    }
-
     // 重置表单
     function resetForm() {
       document.getElementById('step2').classList.remove('active');
       document.getElementById('step1').classList.add('active');
-      document.getElementById('dot2').classList.remove('active');
-      document.getElementById('dot1').classList.remove('completed');
-      document.getElementById('dot1').classList.add('active');
       document.getElementById('tellerId').value = '';
       document.querySelectorAll('input[name="session"]').forEach(function(r) { r.checked = false; });
       document.getElementById('message').className = 'message';
-      document.getElementById('alreadyRegistered').style.display = 'none';
       document.querySelector('button[onclick="submitRegistration()"]').textContent = '提交报名';
       currentTellerId = '';
       currentName = '';

@@ -146,15 +146,14 @@ async function handleRegister(supabase, res, tellerId, session) {
         return res.status(400).json({ error: `该场次已满（${SESSION_LIMIT}人），请选择其他场次` });
     }
 
-    // 插入报名（UNIQUE 约束防止重复）
+    // upsert：有则更新，无则插入（截止日期前允许修改）
     const { data, error } = await supabase
         .from('exam_registration')
-        .insert([{ 柜员号: tellerId, 场次: session, 报名时间: new Date().toISOString() }])
+        .upsert([{ 柜员号: tellerId, 场次: session, 报名时间: new Date().toISOString() }], { onConflict: '柜员号' })
         .select()
         .single();
 
     if (error) {
-        if (error.code === '23505') return res.status(400).json({ error: '您已报名，无法重复报名' });
         throw new Error('报名失败：' + error.message);
     }
 
