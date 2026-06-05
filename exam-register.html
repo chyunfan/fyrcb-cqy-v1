@@ -342,11 +342,18 @@
         <label for="tellerId">柜员号</label>
         <input type="text" id="tellerId" placeholder="请输入您的柜员号" autocomplete="off">
       </div>
-      <button onclick="verifyTeller()">去报名</button>
+      <button id="btnVerify" onclick="verifyTeller()">去报名</button>
     </div>
 
     <!-- 步骤2：填写报名信息 -->
     <div class="step" id="step2">
+
+      <div id="alreadyRegistered" style="display:none;">
+        <div class="info-box">
+          当前报名场次：<strong id="registeredSession"></strong><br>
+          报名时间：<span id="registeredTime"></span>
+        </div>
+      </div>
 
       <div class="info-row">
         <div class="form-group">
@@ -421,7 +428,7 @@
         return;
       }
 
-      const btn = event.target;
+      const btn = document.getElementById('btnVerify');
       btn.innerHTML = '<div class="loading"></div>';
       btn.disabled = true;
 
@@ -443,6 +450,9 @@
         // 如果已报名
         if (data.alreadyRegistered) {
           isAlreadyRegistered = true;
+          document.getElementById('alreadyRegistered').style.display = 'block';
+          document.getElementById('registeredSession').textContent = data.registration.session;
+          document.getElementById('registeredTime').textContent = new Date(data.registration.registeredAt).toLocaleString('zh-CN');
           
           if (isAfterDeadline) {
             showMessage('报名已截止（截止日期：' + deadline + '），无法修改。', 'error');
@@ -554,11 +564,6 @@
         } catch(e) { console.error('刷新统计失败', e); }
 
         showMessage((isAlreadyRegistered ? '修改成功' : '报名成功') + '！<br>柜员号：' + currentTellerId + '<br>姓名：' + currentName + '<br>场次：' + session.value, 'success');
-
-        // 3秒后重置表单
-        setTimeout(function() {
-          resetForm();
-        }, 3000);
 
       } catch (error) {
         showMessage(error.message, 'error');
