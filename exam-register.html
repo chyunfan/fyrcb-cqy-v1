@@ -332,6 +332,21 @@
     .capacity-fill.full {
       background: #f44336;
     }
+
+    /* 手机端适配 */
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .container {
+        border-radius: 12px;
+        padding: 20px 16px;
+      }
+      h1 { font-size: 20px; }
+      .session-columns { grid-template-columns: 1fr; }
+      .info-row { display: flex; flex-direction: column; gap: 8px; }
+      .form-group label { font-size: 14px; }
+      .session-option label { padding: 10px 12px; }
+      .session-date { font-size: 14px; }
+    }
   </style>
 </head>
 <body>
