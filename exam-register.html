@@ -538,6 +538,14 @@
           '</label>';
         target.appendChild(div);
       });
+
+      // 回显已报名的选项
+      if (currentSession) {
+        const checkedRadio = document.querySelector('input[name="session"][value="' + currentSession.replace(/"/g, '\\"') + '"]');
+        if (checkedRadio && !checkedRadio.disabled) {
+          checkedRadio.checked = true;
+        }
+      }
     }
 
     // 提交报名
