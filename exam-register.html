@@ -393,6 +393,7 @@
     let currentName = '';
     let sessionStats = {};
     let isAlreadyRegistered = false; // 是否已报名（用于判断提交 vs 修改）
+    let currentSession = ''; // 当前已报名的场次
     let deadline = '2026-06-15';
     let isAfterDeadline = false;
 
@@ -450,6 +451,7 @@
         // 如果已报名
         if (data.alreadyRegistered) {
           isAlreadyRegistered = true;
+          currentSession = data.registration.session;
           document.getElementById('alreadyRegistered').style.display = 'block';
           document.getElementById('registeredSession').textContent = data.registration.session;
           document.getElementById('registeredTime').textContent = new Date(data.registration.registeredAt).toLocaleString('zh-CN');
@@ -462,6 +464,7 @@
           }
         } else {
           isAlreadyRegistered = false;
+          currentSession = '';
           // 未报名，检查是否超过截止日期
           if (isAfterDeadline) {
             showMessage('报名已截止（截止日期：' + deadline + '），无法报名。', 'error');
@@ -556,12 +559,30 @@
           throw new Error(data.error || '提交失败');
         }
 
-        // 报名成功后刷新场次统计
+        // 报名成功后刷新场次统计并更新已报名信息显示
+        const newSession = session.value;
+        if (currentSession && currentSession !== newSession) {
+          // 修改场次：旧场次减1，新场次加1
+          sessionStats[currentSession] = Math.max(0, (sessionStats[currentSession] || 1) - 1);
+          sessionStats[newSession] = (sessionStats[newSession] || 0) + 1;
+        } else if (!currentSession) {
+          // 新报名：新场次加1
+          sessionStats[newSession] = (sessionStats[newSession] || 0) + 1;
+        }
+        currentSession = newSession;
+
         try {
           const r = await fetch(API_BASE + '?action=lookup&tellerId=' + currentTellerId);
           const d = await r.json();
           if (d.sessionStats) sessionStats = d.sessionStats;
         } catch(e) { console.error('刷新统计失败', e); }
+
+        isAlreadyRegistered = true;
+        document.getElementById('alreadyRegistered').style.display = 'block';
+        document.getElementById('registeredSession').textContent = newSession;
+        document.getElementById('registeredTime').textContent = new Date().toLocaleString('zh-CN');
+        document.querySelector('button[onclick="submitRegistration()"]').textContent = '修改报名';
+        renderSessions();
 
         showMessage((isAlreadyRegistered ? '修改成功' : '报名成功') + '！<br>柜员号：' + currentTellerId + '<br>姓名：' + currentName + '<br>场次：' + session.value, 'success');
 
@@ -583,6 +604,7 @@
       document.querySelector('button[onclick="submitRegistration()"]').textContent = '提交报名';
       currentTellerId = '';
       currentName = '';
+      currentSession = '';
       isAlreadyRegistered = false;
     }
 
