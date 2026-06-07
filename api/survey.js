@@ -1,10 +1,16 @@
 const { createClient } = require('@supabase/supabase-js');
 const crypto = require('crypto');
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_ANON_KEY || ''
-);
+// 延迟初始化 Supabase，避免环境变量缺失时模块加载崩溃
+let _supabase = null;
+function getSupabase() {
+  if (_supabase) return _supabase;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error('SUPABASE_URL 或 SUPABASE_SERVICE_KEY 未配置');
+  _supabase = createClient(url, key);
+  return _supabase;
+}
 
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,7 +28,7 @@ function getFingerprint(req) {
 async function handleCheck(req, res) {
   try {
     const fingerprint = getFingerprint(req);
-    let query = supabase.from('survey_responses').select('*');
+    let query = getSupabase().from('survey_responses').select('*');
     if (fingerprint) query = query.eq('fingerprint', fingerprint);
     const { data: records } = await query.limit(1);
     return res.status(200).json({ submitted: !!(records && records.length > 0) });
@@ -38,7 +44,7 @@ async function handleSubmit(req, res) {
     const fingerprint = getFingerprint(req);
 
     // 检查是否已提交
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabase()
       .from('survey_responses')
       .select('*')
       .eq('fingerprint', fingerprint)
@@ -55,7 +61,7 @@ async function handleSubmit(req, res) {
       submitted_at: body.submittedAt || new Date().toISOString(),
     };
 
-    const { error } = await supabase.from('survey_responses').insert(record);
+    const { error } = await getSupabase().from('survey_responses').insert(record);
     if (error) throw error;
 
     return res.status(200).json({ success: true, message: '提交成功！' });
@@ -67,7 +73,7 @@ async function handleSubmit(req, res) {
 // ========== records: 查询所有记录 ==========
 async function handleRecords(req, res) {
   try {
-    const { data: records, error } = await supabase
+    const { data: records, error } = await getSupabase()
       .from('survey_responses')
       .select('*')
       .order('submitted_at', { ascending: false });
@@ -101,7 +107,7 @@ async function handleDelete(req, res) {
 // ========== export: 导出 CSV ==========
 async function handleExport(req, res) {
   try {
-    const { data: records, error } = await supabase
+    const { data: records, error } = await getSupabase()
       .from('survey_responses')
       .select('*')
       .order('submitted_at', { ascending: true });
