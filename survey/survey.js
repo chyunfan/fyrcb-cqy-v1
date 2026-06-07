@@ -44,7 +44,7 @@ function surveyInitForm() {
   }
 
   // 再检查后端是否已提交
-  fetch('/api/survey/check')
+  fetch('/api/survey?action=check')
     .then(function (res) { return res.json(); })
     .then(function (data) {
       if (data.submitted) {
@@ -109,7 +109,7 @@ function surveySubmitForm() {
   btn.disabled = true;
   btn.textContent = '提交中…';
 
-  fetch('/api/survey/submit', {
+  fetch('/api/survey?action=submit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -169,7 +169,7 @@ var SURVEY_QUESTION_MAP = {
 };
 
 function surveyLoadRecords() {
-  fetch('/api/survey/records')
+  fetch('/api/survey?action=records')
     .then(function (res) { return res.json(); })
     .then(function (data) {
       var records = data.records || [];
@@ -243,12 +243,12 @@ function surveyCloseModal() {
 
 function surveyDelRecord(id) {
   if (!confirm('确定删除该记录？')) return;
-  fetch('/api/survey/records?id=' + id, { method: 'DELETE' })
+  fetch('/api/survey?action=delete&id=' + id, { method: 'DELETE' })
     .then(function () { surveyLoadRecords(); });
 }
 
 function surveyExportCSV() {
-  window.open('/api/survey/export', '_blank');
+  window.open('/api/survey?action=export', '_blank');
 }
 
 // ========== 页面自动初始化 ==========
