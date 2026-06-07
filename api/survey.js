@@ -119,7 +119,12 @@ async function handleExport(req, res) {
 
     const allKeys = new Set();
     records.forEach(r => { if (r.answers) Object.keys(r.answers).forEach(k => allKeys.add(k)); });
-    const answerKeys = [...allKeys].sort();
+    const answerKeys = [...allKeys].sort((a, b) => {
+      const na = parseInt(a.replace('q', ''));
+      const nb = parseInt(b.replace('q', ''));
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return a.localeCompare(b);
+    });
     const headers = ['id', 'fingerprint', ...answerKeys, 'submitted_at'];
 
     const csv = '\uFEFF' + headers.map(h => '"' + h + '"').join(',') + '\n' +
