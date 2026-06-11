@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>员工工作状态调研报告</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f4f6f9; color: #2c3e50; }
+
+  /* 封面 */
+  .cover {
+    background: linear-gradient(135deg, #1a3a5c 0%, #2563a8 50%, #1e8bc3 100%);
+    color: white; padding: 80px 60px; text-align: center; position: relative; overflow: hidden;
+  }
+  .cover::before {
+    content: ''; position: absolute; top: -80px; right: -80px;
+    width: 320px; height: 320px; border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .cover::after {
+    content: ''; position: absolute; bottom: -60px; left: -60px;
+    width: 240px; height: 240px; border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .cover-badge {
+    display: inline-block; background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3); border-radius: 20px;
+    padding: 6px 18px; font-size: 13px; margin-bottom: 28px; letter-spacing: 2px;
+  }
+  .cover h1 { font-size: 38px; font-weight: 700; letter-spacing: 3px; margin-bottom: 12px; }
+  .cover h2 { font-size: 18px; font-weight: 400; opacity: 0.85; margin-bottom: 40px; }
+  .cover-stats {
+    display: flex; justify-content: center; gap: 60px; margin-top: 40px;
+  }
+  .cover-stat { text-align: center; }
+  .cover-stat .num { font-size: 42px; font-weight: 700; }
+  .cover-stat .label { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .cover-date { margin-top: 40px; font-size: 13px; opacity: 0.7; }
+
+  /* 布局 */
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+
+  /* 章节标题 */
+  .section-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 20px; font-weight: 700; color: #1a3a5c;
+    margin: 48px 0 24px; padding-bottom: 12px;
+    border-bottom: 3px solid #2563a8;
+  }
+  .section-title .icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, #2563a8, #1e8bc3);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; flex-shrink: 0;
+  }
+
+  /* 核心发现卡片 */
+  .findings-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 32px; }
+  .finding-card {
+    background: white; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07); text-align: center;
+    border-top: 4px solid;
+  }
+  .finding-card.blue { border-color: #2563a8; }
+  .finding-card.green { border-color: #10a37f; }
+  .finding-card.orange { border-color: #f59e0b; }
+  .finding-card.red { border-color: #ef4444; }
+  .finding-card .big { font-size: 36px; font-weight: 800; }
+  .finding-card.blue .big { color: #2563a8; }
+  .finding-card.green .big { color: #10a37f; }
+  .finding-card.orange .big { color: #f59e0b; }
+  .finding-card.red .big { color: #ef4444; }
+  .finding-card .desc { font-size: 13px; color: #666; margin-top: 6px; line-height: 1.5; }
+
+  /* 图表卡片 */
+  .chart-row { display: grid; gap: 20px; margin-bottom: 24px; }
+  .chart-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .chart-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .chart-row.cols-1 { grid-template-columns: 1fr; }
+  .chart-card {
+    background: white; border-radius: 12px; padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  .chart-card h4 {
+    font-size: 14px; color: #555; margin-bottom: 18px;
+    font-weight: 600; padding-left: 10px;
+    border-left: 3px solid #2563a8;
+  }
+  .chart-wrap { position: relative; }
+
+  /* 进度条排行 */
+  .bar-list { list-style: none; }
+  .bar-item { margin-bottom: 14px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
+  .bar-label .text { color: #333; }
+  .bar-label .pct { color: #2563a8; font-weight: 700; }
+  .bar-track { background: #eef2f7; border-radius: 4px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+
+  /* 警示框 */
+  .insight-box {
+    border-radius: 10px; padding: 16px 20px; margin: 16px 0;
+    display: flex; gap: 14px; align-items: flex-start;
+    font-size: 13.5px; line-height: 1.7;
+  }
+  .insight-box.warn { background: #fff8e6; border-left: 4px solid #f59e0b; }
+  .insight-box.info { background: #eef6ff; border-left: 4px solid #2563a8; }
+  .insight-box.success { background: #edfaf5; border-left: 4px solid #10a37f; }
+  .insight-box.danger { background: #fff0f0; border-left: 4px solid #ef4444; }
+  .insight-box .ico { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+
+  /* 建议表格 */
+  .suggest-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .suggest-table th {
+    background: #1a3a5c; color: white; padding: 12px 16px; text-align: left; font-weight: 600;
+  }
+  .suggest-table td { padding: 12px 16px; border-bottom: 1px solid #eef0f4; vertical-align: top; }
+  .suggest-table tr:nth-child(even) td { background: #f9fafb; }
+  .suggest-table tr:hover td { background: #eef6ff; }
+  .tag {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: 600; margin-right: 4px;
+  }
+  .tag.urgent { background: #fee2e2; color: #dc2626; }
+  .tag.mid { background: #fef9c3; color: #b45309; }
+  .tag.low { background: #dcfce7; color: #16a34a; }
+
+  /* 摘要结论 */
+  .conclusion {
+    background: linear-gradient(135deg, #1a3a5c, #2563a8);
+    color: white; border-radius: 12px; padding: 32px 40px; margin-top: 48px;
+  }
+  .conclusion h3 { font-size: 18px; margin-bottom: 16px; }
+  .conclusion ul { list-style: none; }
+  .conclusion ul li {
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 14px; line-height: 1.7; display: flex; gap: 10px;
+  }
+  .conclusion ul li::before { content: '▸'; color: #7ec8e3; flex-shrink: 0; }
+
+  /* 页脚 */
+  footer {
+    text-align: center; padding: 30px; color: #aaa;
+    font-size: 12px; border-top: 1px solid #e5e7eb; margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<!-- 封面 -->
+<div class="cover">
+  <div class="cover-badge">人力资源管理 · 内部研究报告</div>
+  <h1>员工工作状态调研报告</h1>
+  <h2>Employee Work Status Survey Report 2026</h2>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="num">111</div>
+      <div class="label">有效问卷（份）</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">20</div>
+      <div class="label">调查维度（项）</div>
+    </div>
+    <div class="cover-stat">
+      <div class="num">6</div>
+      <div class="label">岗位类型（类）</div>
+    </div>
+  </div>
+  <div class="cover-date">报告生成时间：2026年6月11日 &nbsp;|&nbsp; 人力资源部</div>
+</div>
+
+<div class="container">
+
+  <!-- 一、核心数据概览 -->
+  <div class="section-title">
+    <div class="icon">📊</div>核心数据概览
+  </div>
+  <div class="findings-grid">
+    <div class="finding-card blue">
+      <div class="big">53.2%</div>
+      <div class="desc">员工积极主动<br>主动推进工作</div>
+    </div>
+    <div class="finding-card orange">
+      <div class="big">74.8%</div>
+      <div class="desc">认为长期压力大<br>是躺平主要原因</div>
+    </div>
+    <div class="finding-card green">
+      <div class="big">73.9%</div>
+      <div class="desc">对薪资基本满意<br>（但仍有差距感）</div>
+    </div>
+    <div class="finding-card red">
+      <div class="big">46.8%</div>
+      <div class="desc">心态平稳保底<br>缺乏进取动力</div>
+    </div>
+  </div>
+
+  <!-- 二、人员基本情况 -->
+  <div class="section-title">
+    <div class="icon">👥</div>一、受访人员基本情况
+  </div>
+  <div class="chart-row cols-3">
+    <div class="chart-card">
+      <h4>Q1 性别分布</h4>
+      <div class="chart-wrap"><canvas id="genderChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q2 年龄段分布</h4>
+      <div class="chart-wrap"><canvas id="ageChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q3 岗位类型分布</h4>
+      <div class="chart-wrap"><canvas id="posChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row cols-2">
+    <div class="chart-card">
+      <h4>Q4 在本单位工作年限</h4>
+      <div class="chart-wrap"><canvas id="tenureOrgChart" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q5 在当前岗位工作年限</h4>
+      <div class="chart-wrap"><canvas id="tenurePosChart" height="200"></canvas></div>
+    </div>
+  </div>
+  <div class="insight-box info">
+    <span class="ico">💡</span>
+    <div><strong>人员结构特征：</strong>受访员工以<strong>女性</strong>（48.6%）和<strong>男性</strong>（51.4%）基本均衡；年龄以<strong>41岁及以上</strong>（49.5%）为主，整体队伍偏中老年；工龄深厚，62.2%在本单位服务<strong>10年以上</strong>，但<strong>50.5%在当前岗位仅1-3年</strong>，说明近期岗位轮换频繁、人员流动较活跃。</div>
+  </div>
+
+  <!-- 三、岗位认知与胜任力 -->
+  <div class="section-title">
+    <div class="icon">🎯</div>二、岗位认知与胜任力评估
+  </div>
+  <div class="chart-row cols-2">
+    <div class="chart-card">
+      <h4>Q6 专业能力与岗位的匹配度</h4>
+      <div class="chart-wrap"><canvas id="matchChart" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q7 对岗位职责/目标/标准的清晰度</h4>
+      <div class="chart-wrap"><canvas id="clarityChart" height="200"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row cols-1">
+    <div class="chart-card">
+      <h4>Q9 当前岗位工作安排存在的问题（多选）</h4>
+      <ul class="bar-list">
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">A、无任何问题，工作安排合理、权责清晰</span><span class="pct">63.1%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:63.1%;background:#10a37f"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">D、部分工作内容冗余重复，没有实际价值</span><span class="pct">25.2%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:25.2%;background:#f59e0b"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">B、任务分配不均，员工忙闲差距大</span><span class="pct">18.0%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:18%;background:#f59e0b"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">C、岗位职责交叉重叠，权责划分模糊</span><span class="pct">15.3%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:15.3%;background:#ef4444"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">E、工作流程繁琐复杂，影响工作效率</span><span class="pct">14.4%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:14.4%;background:#ef4444"></div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box success">
+    <span class="ico">✅</span>
+    <div><strong>正向亮点：</strong>58.6%员工高度胜任本职岗位；68.5%对岗位职责非常清楚；63.1%认为工作安排无明显问题。整体岗位认知基础较好。</div>
+  </div>
+  <div class="insight-box warn">
+    <span class="ico">⚠️</span>
+    <div><strong>关注点：</strong>仍有<strong>25.2%</strong>反映工作内容冗余重复，<strong>15.3%</strong>表示权责划分模糊，建议持续优化岗位说明书，理清职责边界。</div>
+  </div>
+
+  <!-- 四、工作积极性与心态 -->
+  <div class="section-title">
+    <div class="icon">🔥</div>三、工作积极性与心态现状
+  </div>
+  <div class="chart-row cols-2">
+    <div class="chart-card">
+      <h4>Q10 日常工作积极性（整体评估）</h4>
+      <div class="chart-wrap"><canvas id="motivationChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q13 面对晋升/成长机会的态度</h4>
+      <div class="chart-wrap"><canvas id="growthChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row cols-1">
+    <div class="chart-card">
+      <h4>Q11 员工产生躺平心态的主要原因（多选，74.8%～16.2%）</h4>
+      <ul class="bar-list">
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">A、长期工作压力大，身心疲惫，得不到有效放松</span><span class="pct">74.8%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:74.8%;background:#ef4444"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">B、工作付出多、回报少，薪资待遇不匹配，心理失衡</span><span class="pct">53.2%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:53.2%;background:#f97316"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">C、工作缺乏成就感，个人价值得不到体现和认可</span><span class="pct">31.5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:31.5%;background:#f59e0b"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">F、考核机制不合理，认真工作得不到对应认可和回报</span><span class="pct">24.3%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:24.3%;background:#8b5cf6"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">E、晋升渠道不清晰、机会少，职业发展看不到希望</span><span class="pct">23.4%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:23.4%;background:#8b5cf6"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">G、没有清晰工作目标，缺乏工作动力和前进方向</span><span class="pct">16.2%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:16.2%;background:#6b7280"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">D、团队氛围消极，受身边同事消极状态影响</span><span class="pct">16.2%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:16.2%;background:#6b7280"></div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box danger">
+    <span class="ico">🚨</span>
+    <div><strong>核心风险：</strong>当前<strong>46.8%</strong>员工处于"心态平稳、保底完成"状态，并非真正积极投入。躺平诱因中<strong>"压力大+薪酬失衡"双高叠加</strong>（74.8% + 53.2%），是当前最突出的管理挑战，需重点干预。</div>
+  </div>
+
+  <!-- 五、工作压力来源 -->
+  <div class="section-title">
+    <div class="icon">💼</div>四、工作压力来源分析
+  </div>
+  <div class="chart-row cols-2">
+    <div class="chart-card">
+      <h4>Q8 遇到难以解决问题时的应对方式</h4>
+      <div class="chart-wrap"><canvas id="problemChart" height="200"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q12 工作压力的主要来源（多选）</h4>
+      <ul class="bar-list" style="margin-top:12px">
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">D、业务业绩指标压力大</span><span class="pct">59.5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:59.5%;background:#ef4444"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">E、工作时长过长、通勤距离远/耗时久</span><span class="pct">30.6%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:30.6%;background:#f59e0b"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">C、客户沟通难、要求多、故意刁难</span><span class="pct">28.8%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:28.8%;background:#f59e0b"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">B、领导工作要求高、标准严</span><span class="pct">20.7%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:20.7%;background:#6b7280"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">A、同事协作不顺畅、配合难度大</span><span class="pct">18.9%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:18.9%;background:#6b7280"></div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box warn">
+    <span class="ico">⚠️</span>
+    <div><strong>压力三角：</strong>业绩指标（59.5%）、工时通勤（30.6%）、客户服务（28.8%）构成压力主要来源。<strong>97.3%员工遇难题会主动学习攻克</strong>，说明团队韧性强，但持续高压不解决，主动性终将消耗殆尽。</div>
+  </div>
+
+  <!-- 六、薪酬与绩效 -->
+  <div class="section-title">
+    <div class="icon">💰</div>五、薪酬福利与绩效考核评价
+  </div>
+  <div class="chart-row cols-3">
+    <div class="chart-card">
+      <h4>Q14 对薪资福利的满意度</h4>
+      <div class="chart-wrap"><canvas id="salaryChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q15 绩效考核机制公平合理性</h4>
+      <div class="chart-wrap"><canvas id="perfChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q16 最有效的激励方式</h4>
+      <div class="chart-wrap"><canvas id="rewardChart" height="220"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row cols-1">
+    <div class="chart-card">
+      <h4>Q17 单位考核激励机制存在的问题（多选）</h4>
+      <ul class="bar-list">
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">B、考核指标繁杂，重点不突出、方向不聚焦</span><span class="pct">50.5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:50.5%;background:#ef4444"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">A、重惩罚、轻激励，容错机制不完善</span><span class="pct">41.4%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:41.4%;background:#f97316"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">F、没有明显问题，机制较为完善</span><span class="pct">28.8%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:28.8%;background:#10a37f"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">E、考核结果反馈不及时，没有针对性改进指导</span><span class="pct">17.1%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:17.1%;background:#8b5cf6"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">C、绩效分配差距小，干多干少差别不大</span><span class="pct">17.1%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:17.1%;background:#8b5cf6"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">D、激励方式单一，只侧重物质、缺少精神关怀</span><span class="pct">13.5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:13.5%;background:#6b7280"></div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box danger">
+    <span class="ico">🔴</span>
+    <div><strong>考核制度痛点：</strong>50.5%认为考核指标繁杂、方向不聚焦；41.4%认为"重惩罚轻激励"；仅28.8%认为机制完善。<strong>78.4%员工认为"提高薪资绩效"是最有效激励方式</strong>，薪酬杠杆仍是激励核心。</div>
+  </div>
+
+  <!-- 七、职业规划与成长 -->
+  <div class="section-title">
+    <div class="icon">🚀</div>六、职业发展规划与成长支持
+  </div>
+  <div class="chart-row cols-2">
+    <div class="chart-card">
+      <h4>Q18 未来1-3年职业发展规划清晰度</h4>
+      <div class="chart-wrap"><canvas id="planChart" height="220"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h4>Q19 单位最需优化的职业成长内容（多选）</h4>
+      <ul class="bar-list" style="margin-top:12px">
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">E、打造积极向上、互帮互助的团队工作氛围</span><span class="pct">52.3%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:52.3%;background:#2563a8"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">A、畅通晋升通道，打破晋升壁垒，让努力有回报</span><span class="pct">46.8%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:46.8%;background:#2563a8"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">F、完善容错机制，合理包容员工工作中的无意失误</span><span class="pct">44.1%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:44.1%;background:#1e8bc3"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">B、增加岗位轮岗、对外交流、学习提升机会</span><span class="pct">43.2%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:43.2%;background:#1e8bc3"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">D、优化薪资绩效体系，落实多劳多得、优绩优酬</span><span class="pct">40.5%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:40.5%;background:#7c3aed"></div></div>
+        </li>
+        <li class="bar-item">
+          <div class="bar-label"><span class="text">C、建立帮扶机制，助力员工补齐短板、提升能力</span><span class="pct">35.1%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:35.1%;background:#7c3aed"></div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class="insight-box warn">
+    <span class="ico">📋</span>
+    <div><strong>规划现状：</strong>仅<strong>35.1%</strong>有清晰职业规划，<strong>45.9%</strong>有想法但缺乏执行计划，<strong>6.3%</strong>完全没有规划。近半数员工职业方向模糊，组织需要提供更强的职业路径引导和发展支持。</div>
+  </div>
+
+  <!-- 八、综合建议 -->
+  <div class="section-title">
+    <div class="icon">📋</div>七、改善建议与行动方案
+  </div>
+  <table class="suggest-table">
+    <thead>
+      <tr>
+        <th style="width:12%">优先级</th>
+        <th style="width:22%">改善方向</th>
+        <th style="width:42%">具体举措建议</th>
+        <th style="width:24%">数据依据</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tag urgent">紧急</span></td>
+        <td>减压降负 / 心理关怀</td>
+        <td>建立员工EAP（员工援助计划），定期心理疏导；优化工时安排，推行弹性制度；合理拆解高压业绩指标</td>
+        <td>74.8%反映长期压力大；59.5%感受业绩指标压力</td>
+      </tr>
+      <tr>
+        <td><span class="tag urgent">紧急</span></td>
+        <td>薪酬优化 / 多劳多得</td>
+        <td>建立差异化绩效薪酬体系，扩大优秀员工奖励幅度；拉开绩效分配差距，打破"大锅饭"；明确薪酬增长路径</td>
+        <td>53.2%薪酬失衡感；78.4%认为薪酬激励最有效</td>
+      </tr>
+      <tr>
+        <td><span class="tag urgent">紧急</span></td>
+        <td>考核机制改革</td>
+        <td>精简考核指标，聚焦关键KPI；平衡奖惩权重，建立容错机制；加强考核结果反馈，配套改进辅导</td>
+        <td>50.5%指标繁杂；41.4%重惩轻奖；17.1%反馈缺失</td>
+      </tr>
+      <tr>
+        <td><span class="tag mid">重要</span></td>
+        <td>晋升通道畅通</td>
+        <td>制定透明的职级晋升标准；定期公示晋升机会；增设多元化职业发展路径（技术路线/管理路线）</td>
+        <td>23.4%晋升无望；46.8%期望畅通晋升通道</td>
+      </tr>
+      <tr>
+        <td><span class="tag mid">重要</span></td>
+        <td>成就感与价值认可</td>
+        <td>加强日常正向反馈，多表扬优秀行为；设立员工价值贡献展示平台；丰富精神激励手段</td>
+        <td>31.5%缺乏成就感；13.5%认为激励方式单一</td>
+      </tr>
+      <tr>
+        <td><span class="tag mid">重要</span></td>
+        <td>职业规划辅导</td>
+        <td>为员工提供一对一职业发展面谈；建立年度职业规划档案；定期开展职业发展培训课程</td>
+        <td>45.9%规划不清晰；6.3%完全无规划</td>
+      </tr>
+      <tr>
+        <td><span class="tag low">常规</span></td>
+        <td>团队氛围建设</td>
+        <td>定期组织团队活动，增强凝聚力；打造积极向上的工作文化；推广互帮互助、经验分享机制</td>
+        <td>52.3%期望优化团队氛围</td>
+      </tr>
+      <tr>
+        <td><span class="tag low">常规</span></td>
+        <td>流程优化 / 权责清晰</td>
+        <td>持续梳理岗位说明书，消除权责模糊；精简冗余工作流程，提升操作效率</td>
+        <td>15.3%权责模糊；14.4%流程繁琐</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 九、结论 -->
+  <div class="conclusion">
+    <h3>📌 综合结论</h3>
+    <ul>
+      <li>整体队伍<strong>工龄深、经验足、胜任度高</strong>，主动解决问题能力强（97.3%），是组织的核心资产。</li>
+      <li><strong>"压力大 + 薪酬失衡"双重夹击</strong>是当前员工躺平心态的第一诱因，需优先系统性干预。</li>
+      <li>绩效考核机制<strong>繁杂、惩多奖少、反馈滞后</strong>，正在持续消耗员工积极性，是最亟待改革的管理短板。</li>
+      <li>约<strong>半数员工处于"保底完成"状态</strong>，未充分激活，通过薪酬杠杆+晋升机会+成就认可三管齐下可有效提升。</li>
+      <li>员工对<strong>团队氛围、晋升通道、容错环境、职业成长</strong>期望强烈，组织需从文化和制度两个维度协同发力。</li>
+      <li>岗位轮换活跃（50.5%当前岗位1-3年），应配套<strong>快速融入支持和职业规划辅导</strong>，减少适应期低效。</li>
+    </ul>
+  </div>
+</div>
+
+<footer>本报告由人力资源部基于111份有效问卷数据自动生成 · 2026年6月11日 · 仅供内部参考使用</footer>
+
+<script>
+// 通用颜色
+const blues = ['#2563a8','#1e8bc3','#3b9fd4','#6dbde8','#a8d8f0'];
+const palette = ['#2563a8','#10a37f','#f59e0b','#ef4444','#8b5cf6','#f97316','#6b7280'];
+
+// Q1 性别
+new Chart(document.getElementById('genderChart'), {
+  type: 'doughnut',
+  data: { labels:['男 (51.4%)','女 (48.6%)'], datasets:[{ data:[57,54], backgroundColor:['#2563a8','#f472b6'], borderWidth:2 }] },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:13} } } } }
+});
+
+// Q2 年龄
+new Chart(document.getElementById('ageChart'), {
+  type: 'bar',
+  data: {
+    labels:['28岁及以下','29-35岁','36-40岁','41岁以上'],
+    datasets:[{ data:[15,28,13,55], backgroundColor:['#6dbde8','#1e8bc3','#2563a8','#1a3a5c'], borderRadius:6 }]
+  },
+  options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{stepSize:10} } } }
+});
+
+// Q3 岗位
+new Chart(document.getElementById('posChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['支行柜面/厅堂','总行专业岗','总行操作岗','客户经理岗','综合管理岗','其他'],
+    datasets:[{ data:[31,28,19,19,5,9], backgroundColor:palette, borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}, boxWidth:12 } } } }
+});
+
+// Q4 单位年限
+new Chart(document.getElementById('tenureOrgChart'), {
+  type: 'bar',
+  data: {
+    labels:['1年及以下','1-3年','3-5年','5-10年','10年以上'],
+    datasets:[{ data:[7,15,10,10,69], backgroundColor:['#a8d8f0','#6dbde8','#3b9fd4','#1e8bc3','#1a3a5c'], borderRadius:6 }]
+  },
+  options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+});
+
+// Q5 当前岗位年限
+new Chart(document.getElementById('tenurePosChart'), {
+  type: 'bar',
+  data: {
+    labels:['1-3年','3-5年','5-10年','10年以上'],
+    datasets:[{ data:[56,19,15,21], backgroundColor:['#a8d8f0','#3b9fd4','#1e8bc3','#1a3a5c'], borderRadius:6 }]
+  },
+  options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+});
+
+// Q6 匹配度
+new Chart(document.getElementById('matchChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['高度匹配 (58.6%)','基本匹配 (41.4%)'],
+    datasets:[{ data:[65,46], backgroundColor:['#10a37f','#3b9fd4'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:13} } } } }
+});
+
+// Q7 清晰度
+new Chart(document.getElementById('clarityChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['非常清楚 (68.5%)','比较清楚 (31.5%)'],
+    datasets:[{ data:[76,35], backgroundColor:['#2563a8','#6dbde8'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:13} } } } }
+});
+
+// Q8 应对方式
+new Chart(document.getElementById('problemChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['A.主动请教学习 (97.3%)','B.等待指示安排 (2.7%)'],
+    datasets:[{ data:[108,3], backgroundColor:['#10a37f','#ef4444'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:13} } } } }
+});
+
+// Q10 积极性
+new Chart(document.getElementById('motivationChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['积极主动 (53.2%)','心态平稳保底 (46.8%)'],
+    datasets:[{ data:[59,52], backgroundColor:['#2563a8','#f59e0b'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:13} } } } }
+});
+
+// Q13 晋升态度
+new Chart(document.getElementById('growthChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['顺其自然 (51.4%)','积极争取 (44.1%)','消极回避 (4.5%)'],
+    datasets:[{ data:[57,49,5], backgroundColor:['#f59e0b','#10a37f','#ef4444'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:13} } } } }
+});
+
+// Q14 薪酬满意度
+new Chart(document.getElementById('salaryChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['基本满意 (73.9%)','非常满意 (13.5%)','不太满意 (12.6%)'],
+    datasets:[{ data:[82,15,14], backgroundColor:['#3b9fd4','#10a37f','#ef4444'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:12} } } } }
+});
+
+// Q15 绩效公平性
+new Chart(document.getElementById('perfChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['基本合理 (68.5%)','公平合理 (20.7%)','不太合理 (7.2%)','很不合理 (3.6%)'],
+    datasets:[{ data:[76,23,8,4], backgroundColor:['#3b9fd4','#10a37f','#f59e0b','#ef4444'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}, boxWidth:12 } } } }
+});
+
+// Q16 激励方式
+new Chart(document.getElementById('rewardChart'), {
+  type: 'bar',
+  data: {
+    labels:['提高薪资绩效','丰富团队活动','完善管理制度','加强精神激励'],
+    datasets:[{ data:[87,14,5,5], backgroundColor:['#ef4444','#f59e0b','#8b5cf6','#10a37f'], borderRadius:6 }]
+  },
+  options: { plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true } } }
+});
+
+// Q18 规划
+new Chart(document.getElementById('planChart'), {
+  type: 'doughnut',
+  data: {
+    labels:['有初步想法 (45.9%)','规划清晰 (35.1%)','规划模糊 (12.6%)','完全无规划 (6.3%)'],
+    datasets:[{ data:[51,39,14,7], backgroundColor:['#f59e0b','#10a37f','#f97316','#ef4444'], borderWidth:2 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}, boxWidth:12 } } } }
+});
+</script>
+</body>
+</html>
