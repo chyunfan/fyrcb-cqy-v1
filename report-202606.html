@@ -145,6 +145,71 @@
     text-align: center; padding: 30px; color: #aaa;
     font-size: 12px; border-top: 1px solid #e5e7eb; margin-top: 40px;
   }
+
+  /* ===== 手机端响应式适配 ===== */
+  @media (max-width: 768px) {
+    /* 封面 */
+    .cover { padding: 48px 20px 40px; }
+    .cover h1 { font-size: 22px; letter-spacing: 1px; }
+    .cover h2 { font-size: 13px; margin-bottom: 24px; }
+    .cover-stats { gap: 24px; flex-wrap: wrap; }
+    .cover-stat .num { font-size: 30px; }
+    .cover-badge { font-size: 11px; padding: 4px 14px; }
+
+    /* 容器 */
+    .container { padding: 20px 14px; }
+
+    /* 章节标题 */
+    .section-title { font-size: 16px; margin: 32px 0 16px; }
+    .section-title .icon { width: 30px; height: 30px; font-size: 14px; }
+
+    /* 核心发现卡片：2列 */
+    .findings-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .finding-card { padding: 14px 10px; }
+    .finding-card .big { font-size: 26px; }
+    .finding-card .desc { font-size: 12px; }
+
+    /* 图表行：全部单列 */
+    .chart-row.cols-2,
+    .chart-row.cols-3 { grid-template-columns: 1fr; }
+    .chart-card { padding: 16px 12px; }
+    .chart-card h4 { font-size: 13px; margin-bottom: 12px; }
+
+    /* 进度条文字 */
+    .bar-label { font-size: 12px; }
+
+    /* 建议表格 —— 手机上改为卡片堆叠 */
+    .suggest-table thead { display: none; }
+    .suggest-table, .suggest-table tbody,
+    .suggest-table tr, .suggest-table td { display: block; width: 100%; }
+    .suggest-table tr { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 10px; padding: 4px 0; background: white; }
+    .suggest-table td {
+      padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px;
+    }
+    .suggest-table td:last-child { border-bottom: none; }
+    .suggest-table td::before {
+      content: attr(data-label);
+      display: block; font-weight: 700; color: #1a3a5c; font-size: 11px; margin-bottom: 2px;
+    }
+
+    /* 结论区 */
+    .conclusion { padding: 20px 16px; }
+    .conclusion h3 { font-size: 15px; }
+    .conclusion ul li { font-size: 13px; }
+
+    /* 警示框 */
+    .insight-box { font-size: 12.5px; padding: 12px 14px; gap: 10px; }
+    .insight-box .ico { font-size: 17px; }
+
+    /* 图表高度适配 */
+    canvas { max-height: 260px !important; }
+  }
+
+  @media (max-width: 400px) {
+    .cover h1 { font-size: 19px; }
+    .findings-grid { grid-template-columns: 1fr 1fr; }
+    .finding-card .big { font-size: 22px; }
+  }
 </style>
 </head>
 <body>
