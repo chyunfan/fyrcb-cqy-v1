@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>篮球对抗赛 · 得分排行榜海报</title>
+<style>
+  /* ========== Design Tokens ========== */
+  :root {
+    /* 战队色（提亮，确保深色背景下高对比） */
+    --gold: #fbbf24;
+    --gold-deep: #f59e0b;
+    --blue: #38bdf8;
+    --blue-deep: #0ea5e9;
+    --purple: #a78bfa;
+    --purple-deep: #8b5cf6;
+    --red: #f87171;
+    --red-deep: #ef4444;
+
+    /* 中性色 */
+    --bg-0: #101a3a;
+    --bg-1: #16214a;
+    --bg-2: #1b2a5e;
+    --ink-1: #f8fafc;
+    --ink-2: #cbd5e1;
+    --ink-3: #94a3b8;
+    --line: rgba(255, 255, 255, 0.1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg-2);
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ========== 缩放容器 ========== */
+  .poster-wrap {
+    position: relative;
+    margin: 0 auto;
+  }
+
+  /* ========== 海报画布 1080×1920 ========== */
+  .poster {
+    width: 1080px;
+    min-height: 1920px;
+    background:
+      /* 四战队彩色光晕 */
+      radial-gradient(ellipse 560px 360px at 16% 8%,  rgba(251, 191, 36, 0.13),  transparent 62%),
+      radial-gradient(ellipse 560px 360px at 84% 14%, rgba(56, 189, 248, 0.13), transparent 62%),
+      radial-gradient(ellipse 560px 360px at 12% 52%, rgba(167, 139, 250, 0.12), transparent 62%),
+      radial-gradient(ellipse 560px 360px at 88% 58%, rgba(248, 113, 113, 0.12), transparent 62%),
+      radial-gradient(ellipse 900px 480px at 50% -6%, rgba(76, 130, 255, 0.25), transparent 65%),
+      linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 45%, var(--bg-2) 100%);
+    border-radius: 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: none;
+    transform-origin: top left;
+  }
+
+  /* 桌面端（≥1081px）：海报居中带圆角和阴影 */
+  @media (min-width: 1081px) {
+    body { padding: 24px 0; }
+    .poster {
+      border-radius: 24px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    }
+  }
+
+  /* 球场线装饰 */
+  .poster::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .inner { position: relative; padding: 0 64px; }
+
+  /* ========== Header ========== */
+  .header {
+    padding: 16px 64px 36px;
+    text-align: center;
+    position: relative;
+  }
+  .header .kicker {
+    font-size: 30px;
+    letter-spacing: 10px;
+    color: var(--ink-3);
+    margin-bottom: 22px;
+    text-indent: 10px;
+  }
+  .header h1 {
+    font-size: 76px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    background: linear-gradient(180deg, #ffffff 20%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.15;
+    filter: drop-shadow(0 6px 24px rgba(99, 102, 241, 0.35));
+  }
+  .header .divider {
+    width: 160px;
+    height: 6px;
+    border-radius: 3px;
+    margin: 34px auto 0;
+    background: linear-gradient(90deg, var(--gold), var(--blue), var(--purple), var(--red));
+  }
+
+  /* ========== 场次标签 ========== */
+  .round-label {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 8px 0 28px;
+  }
+  .round-label .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 26px;
+    border-radius: 999px;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .round-label .line { flex: 1; height: 1px; background: var(--line); }
+
+  /* ========== 对决卡 ========== */
+  .duel-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px 44px 44px;
+    margin-bottom: 40px;
+  }
+
+  /* 对决比分横幅 */
+  .duel-score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .duel-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+  .duel-team .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    box-shadow: 0 0 20px var(--tc);
+  }
+  .duel-team .tname {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: var(--ink-1);
+  }
+  .duel-team .tscore {
+    font-size: 64px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--tc);
+    text-shadow: 0 4px 28px color-mix(in srgb, var(--tc) 55%, transparent);
+  }
+  .duel-vs {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 0 30px;
+  }
+  .duel-vs .vs {
+    font-size: 46px;
+    font-weight: 800;
+    font-style: italic;
+    background: linear-gradient(180deg, #fff, #64748b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .duel-vs .stat {
+    font-size: 20px;
+    color: var(--ink-3);
+    letter-spacing: 2px;
+    white-space: nowrap;
+  }
+
+  /* 战队色变量 + 7 档排名淡化色（rgba 写法，跨浏览器兼容） */
+  .c-gold  { --tc: var(--gold);  --tcd: var(--gold-deep);
+             --c1: rgba(251,191,36,0.16); --c2: rgba(251,191,36,0.12); --c3: rgba(251,191,36,0.09);
+             --c4: rgba(251,191,36,0.07); --c5: rgba(251,191,36,0.05); --c6: rgba(251,191,36,0.04); --c7: rgba(251,191,36,0.03); }
+  .c-blue  { --tc: var(--blue);  --tcd: var(--blue-deep);
+             --c1: rgba(56,189,248,0.16); --c2: rgba(56,189,248,0.12); --c3: rgba(56,189,248,0.09);
+             --c4: rgba(56,189,248,0.07); --c5: rgba(56,189,248,0.05); --c6: rgba(56,189,248,0.04); --c7: rgba(56,189,248,0.03); }
+  .c-purple{ --tc: var(--purple);--tcd: var(--purple-deep);
+             --c1: rgba(167,139,250,0.16); --c2: rgba(167,139,250,0.12); --c3: rgba(167,139,250,0.09);
+             --c4: rgba(167,139,250,0.07); --c5: rgba(167,139,250,0.05); --c6: rgba(167,139,250,0.04); --c7: rgba(167,139,250,0.03); }
+  .c-red   { --tc: var(--red);   --tcd: var(--red-deep);
+             --c1: rgba(248,113,113,0.16); --c2: rgba(248,113,113,0.12); --c3: rgba(248,113,113,0.09);
+             --c4: rgba(248,113,113,0.07); --c5: rgba(248,113,113,0.05); --c6: rgba(248,113,113,0.04); --c7: rgba(248,113,113,0.03); }
+  .duel-team .dot { background: var(--tc); color: var(--tc); }
+
+  /* ========== 两队并排布局 ========== */
+  .duel-bodies {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .team-block .team-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--tc), var(--tcd));
+    box-shadow: 0 8px 24px -6px color-mix(in srgb, var(--tc) 60%, transparent);
+  }
+  .team-head .tname {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    white-space: nowrap;
+  }
+  .team-head .total {
+    margin-left: auto;
+    font-size: 19px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.95);
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  .team-head .total b {
+    font-size: 26px;
+    margin-left: 6px;
+  }
+
+  /* ========== 队员列表（单列） ========== */
+  .player-list { display: flex; flex-direction: column; gap: 6px; }
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: border-color 0.2s;
+  }
+.player:hover { border-color: rgba(255,255,255,0.16); }
+
+  /* —— 队员底色：与队名同色系（rgba 写法，跨浏览器兼容），按排名从前往后逐级变淡 —— */
+  .player.rank-1 { background-color: var(--c1); }
+  .player.rank-2 { background-color: var(--c2); }
+  .player.rank-3 { background-color: var(--c3); }
+  .player-list .player:nth-child(4) { background-color: var(--c4); }
+  .player-list .player:nth-child(5) { background-color: var(--c5); }
+  .player-list .player:nth-child(6) { background-color: var(--c6); }
+  .player-list .player:nth-child(7) { background-color: var(--c7); }
+
+  .player .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
+    height: 46px;
+    padding: 0 8px;
+    border-radius: 12px;
+    font-size: 21px;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--tc) 78%, white), var(--tc));
+    box-shadow: 0 6px 16px -4px var(--tc);
+    font-variant-numeric: tabular-nums;
+    border: 2px solid rgba(255,255,255,0.35);
+    flex-shrink: 0;
+  }
+  .player .pname {
+    display: inline-block;
+    min-width: 3em;
+    text-align: justify;
+    text-align-last: justify;
+    text-justify: inter-ideograph;
+    font-size: 23px;
+    font-weight: 600;
+    color: var(--ink-1);
+    white-space: nowrap;
+  }
+  /* 队员姓名统一样式，不做差异化加粗 */
+  .player .pname .crown { font-size: 20px; }
+  .player .bar-wrap {
+    flex: 1;
+    height: 10px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.09);
+    overflow: hidden;
+  }
+  .player .bar {
+    height: 100%;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--tc), color-mix(in srgb, var(--tc) 55%, white));
+  }
+
+  /* —— 得分：统一白色粗体（不要圆角徽章框） —— */
+  .player .pscore {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+    min-width: 50px;
+    text-align: right;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.55);
+    flex-shrink: 0;
+  }
+  /* 前三名得分加深投影，确保横条底色下清晰 */
+  .player.rank-1 .pscore,
+  .player.rank-2 .pscore,
+  .player.rank-3 .pscore {
+    text-shadow: 0 2px 12px rgba(0,0,0,0.7);
+  }
+
+  /* ========== Footer ========== */
+  .footer {
+    margin-top: 24px;
+    padding: 0 64px 48px;
+    text-align: center;
+  }
+  .footer .rule {
+    height: 1px;
+    background: var(--line);
+    margin-bottom: 28px;
+  }
+  .footer .note {
+    font-size: 22px;
+    color: var(--ink-3);
+    letter-spacing: 3px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="poster-wrap">
+    <div class="poster" id="poster">
+      <div class="inner">
+
+        <!-- ===== Header ===== -->
+        <div class="header">
+          <div class="kicker">富阳农商银行</div>
+          <h1>第五届职工篮球赛</h1>
+          <div class="divider"></div>
+        </div>
+
+        <!-- ===== 第一场 ===== -->
+        <div class="round-label">
+          <div class="line"></div>
+          <div class="tag">第一场 · ROUND 1</div>
+          <div class="line"></div>
+        </div>
+
+        <div class="duel-card">
+          <div class="duel-score">
+            <div class="duel-team c-blue">
+                            <div class="tname">弄潮儿战队</div>
+              <div class="tscore">35</div>
+            </div>
+            <div class="duel-vs">
+              <div class="vs">VS</div>
+              <div class="stat">队内总得分</div>
+            </div>
+            <div class="duel-team c-gold">
+                            <div class="tname">荣耀先锋队</div>
+              <div class="tscore">55</div>
+            </div>
+          </div>
+
+          <div class="duel-bodies">
+            <!-- 弄潮儿战队（左） -->
+            <div class="team-block c-blue">
+              <div class="team-head" style="background: linear-gradient(90deg, var(--tc), var(--tcd));">
+                <span class="tname">弄潮儿战队</span>
+                <span class="total">35 分</span>
+              </div>
+              <div class="player-list">
+                <div class="player rank-1"><span class="num">99</span><span class="pname">俞炜</span><div class="bar-wrap"><div class="bar" style="width:100%"></div></div><span class="pscore">9</span></div>
+                <div class="player rank-2"><span class="num">8</span><span class="pname">刘宁</span><div class="bar-wrap"><div class="bar" style="width:89%"></div></div><span class="pscore">8</span></div>
+                <div class="player rank-3"><span class="num">27</span><span class="pname">刘飞</span><div class="bar-wrap"><div class="bar" style="width:89%"></div></div><span class="pscore">8</span></div>
+                <div class="player"><span class="num">6</span><span class="pname">李俊杰</span><div class="bar-wrap"><div class="bar" style="width:67%"></div></div><span class="pscore">6</span></div>
+                <div class="player"><span class="num">2</span><span class="pname">郎佳杰</span><div class="bar-wrap"><div class="bar" style="width:22%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">5</span><span class="pname">徐晓斌</span><div class="bar-wrap"><div class="bar" style="width:22%"></div></div><span class="pscore">2</span></div>
+              </div>
+            </div>
+
+            <!-- 荣耀先锋队（右） -->
+            <div class="team-block c-gold">
+              <div class="team-head" style="background: linear-gradient(90deg, var(--tc), var(--tcd));">
+                <span class="tname">荣耀先锋队</span>
+                <span class="total">55 分</span>
+              </div>
+              <div class="player-list">
+                <div class="player rank-1"><span class="num">1</span><span class="pname">张铖飞</span><div class="bar-wrap"><div class="bar" style="width:100%"></div></div><span class="pscore">24</span></div>
+                <div class="player rank-2"><span class="num">9</span><span class="pname">吕挺</span><div class="bar-wrap"><div class="bar" style="width:46%"></div></div><span class="pscore">11</span></div>
+                <div class="player rank-3"><span class="num">10</span><span class="pname">吕葳青</span><div class="bar-wrap"><div class="bar" style="width:46%"></div></div><span class="pscore">11</span></div>
+                <div class="player"><span class="num">22</span><span class="pname">屠智盛</span><div class="bar-wrap"><div class="bar" style="width:13%"></div></div><span class="pscore">3</span></div>
+                <div class="player"><span class="num">7</span><span class="pname">李罗飞</span><div class="bar-wrap"><div class="bar" style="width:8%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">17</span><span class="pname">金宇翔</span><div class="bar-wrap"><div class="bar" style="width:8%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">18</span><span class="pname">陈冠臻</span><div class="bar-wrap"><div class="bar" style="width:8%"></div></div><span class="pscore">2</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 第二场 ===== -->
+        <div class="round-label">
+          <div class="line"></div>
+          <div class="tag">第二场 · ROUND 2</div>
+          <div class="line"></div>
+        </div>
+
+        <div class="duel-card">
+          <div class="duel-score">
+            <div class="duel-team c-purple">
+                            <div class="tname">从容应队</div>
+              <div class="tscore">48</div>
+            </div>
+            <div class="duel-vs">
+              <div class="vs">VS</div>
+              <div class="stat">队内总得分</div>
+            </div>
+            <div class="duel-team c-red">
+                            <div class="tname">西部战狼</div>
+              <div class="tscore">21</div>
+            </div>
+          </div>
+
+          <div class="duel-bodies">
+            <!-- 从容应队（左） -->
+            <div class="team-block c-purple">
+              <div class="team-head" style="background: linear-gradient(90deg, var(--tc), var(--tcd));">
+                <span class="tname">从容应队</span>
+                <span class="total">48 分</span>
+              </div>
+              <div class="player-list">
+                <div class="player rank-1"><span class="num">12</span><span class="pname">叶清正</span><div class="bar-wrap"><div class="bar" style="width:100%"></div></div><span class="pscore">26</span></div>
+                <div class="player rank-2"><span class="num">8</span><span class="pname">郑景</span><div class="bar-wrap"><div class="bar" style="width:46%"></div></div><span class="pscore">12</span></div>
+                <div class="player rank-3"><span class="num">15</span><span class="pname">史杭炜</span><div class="bar-wrap"><div class="bar" style="width:23%"></div></div><span class="pscore">6</span></div>
+                <div class="player"><span class="num">4</span><span class="pname">丁柳斌</span><div class="bar-wrap"><div class="bar" style="width:8%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">9</span><span class="pname">俞鑫</span><div class="bar-wrap"><div class="bar" style="width:8%"></div></div><span class="pscore">2</span></div>
+              </div>
+            </div>
+
+            <!-- 西部战狼（右） -->
+            <div class="team-block c-red">
+              <div class="team-head" style="background: linear-gradient(90deg, var(--tc), var(--tcd));">
+                <span class="tname">西部战狼</span>
+                <span class="total">21 分</span>
+              </div>
+              <div class="player-list">
+                <div class="player rank-1"><span class="num">4</span><span class="pname">祝丹枫</span><div class="bar-wrap"><div class="bar" style="width:100%"></div></div><span class="pscore">7</span></div>
+                <div class="player rank-2"><span class="num">23</span><span class="pname">盛尹稞</span><div class="bar-wrap"><div class="bar" style="width:86%"></div></div><span class="pscore">6</span></div>
+                <div class="player rank-3"><span class="num">5</span><span class="pname">奚路彤</span><div class="bar-wrap"><div class="bar" style="width:29%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">7</span><span class="pname">周雪海</span><div class="bar-wrap"><div class="bar" style="width:29%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">10</span><span class="pname">钟瑜</span><div class="bar-wrap"><div class="bar" style="width:29%"></div></div><span class="pscore">2</span></div>
+                <div class="player"><span class="num">15</span><span class="pname">章竞</span><div class="bar-wrap"><div class="bar" style="width:29%"></div></div><span class="pscore">2</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Footer ===== -->
+        <div class="footer">
+          <div class="rule"></div>
+          <div class="note">8月13日得分排行榜</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 手机自适应缩放：海报 + 容器同步缩放，铺满视口无留白 -->
+  <script>
+    (function () {
+      var poster = document.getElementById('poster');
+      var wrap = document.querySelector('.poster-wrap');
+      function fit() {
+        var scale = Math.min(1, window.innerWidth / 1080);
+        poster.style.transform = 'scale(' + scale + ')';
+        wrap.style.width  = (1080 * scale) + 'px';
+        wrap.style.height = (poster.offsetHeight * scale) + 'px';
+      }
+      window.addEventListener('resize', fit);
+      window.addEventListener('orientationchange', function () { setTimeout(fit, 100); });
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fit);
+      } else {
+        fit();
+      }
+    })();
+  </script>
+
+</body>
+</html>
