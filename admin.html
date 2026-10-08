@@ -548,7 +548,11 @@
 
 <script>
     var TOKEN = new URLSearchParams(location.search).get('token') || '';
-    var API_BASE = '';
+    // 子路径部署支持：网关剥掉 /cqy 前缀，前端补回
+    var API_BASE = (function () {
+        var m = location.pathname.match(/^\/(cqy)(\/|$)/);
+        return m ? '/' + m[1] : '';
+    })();
 
     // 页面初始化
     if (!TOKEN) {

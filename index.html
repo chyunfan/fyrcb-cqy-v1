@@ -2,6 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // 子路径部署支持：网关（chyunfan.cn）剥掉 /cqy 前缀转发给 Vercel，
+        // 前端绝对路径请求需自行补回前缀，否则会打到域名根路径而 503。
+        var APP_BASE = (function () {
+            var m = location.pathname.match(/^\/(cqy)(\/|$)/);
+            return m ? '/' + m[1] : '';
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>员工旅行报名</title>
     <style>
@@ -712,7 +720,7 @@
             showLoading(true, '正在查询柜员信息...');
             document.getElementById('tellerBtn').disabled = true;
 
-            fetch('/api/lookup-teller?tellerNumber=' + encodeURIComponent(num))
+            fetch(APP_BASE + '/api/lookup-teller?tellerNumber=' + encodeURIComponent(num))
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     showLoading(false);
@@ -777,7 +785,7 @@
 
         // 查询是否已有报名记录
         function queryExisting() {
-            fetch('/api/query?tellerNumber=' + encodeURIComponent(currentUser.tellerNumber))
+            fetch(APP_BASE + '/api/query?tellerNumber=' + encodeURIComponent(currentUser.tellerNumber))
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.error) {
@@ -919,7 +927,7 @@
                 recordId: currentUser.recordId
             };
 
-            fetch('/api/submit', {
+            fetch(APP_BASE + '/api/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

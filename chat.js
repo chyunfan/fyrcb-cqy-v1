@@ -1,5 +1,13 @@
 // chat.js - 对话式填单逻辑（状态机 + 关键词匹配）
 
+// ========== 子路径部署支持 ==========
+// 网关（chyunfan.cn）把 /cqy 前缀剥掉后转发给 Vercel，
+// 因此前端所有绝对路径请求需自行补回 /cqy 前缀，否则会打到域名根路径。
+var APP_BASE = (function () {
+    var m = location.pathname.match(/^\/(cqy)(\/|$)/);
+    return m ? '/' + m[1] : '';
+})();
+
 // ========== 状态定义 ==========
 const STATE = {
     TELLER:  'TELLER',   // 询问柜员号
@@ -325,7 +333,7 @@ function handleTellerNumber(msg) {
     appendBotMsg('⏳ 正在验证柜员号...');
     setHeaderStatus('正在验证...');
 
-    fetch('/api/lookup-teller?tellerNumber=' + encodeURIComponent(num))
+    fetch(APP_BASE + '/api/lookup-teller?tellerNumber=' + encodeURIComponent(num))
         .then(function(res) { return res.json(); })
         .then(function(result) {
             if (result.error) {
@@ -585,7 +593,7 @@ function doSubmit() {
         remark: data.remark
     };
 
-    fetch('/api/submit', {
+    fetch(APP_BASE + '/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -632,7 +640,7 @@ function doPatchAndShow(successMsg) {
         remark: data.remark
     };
 
-    fetch('/api/submit', {
+    fetch(APP_BASE + '/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -836,7 +844,7 @@ function showAllRoutes() {
     html += '<div class="info-row"><span class="value">6. 台州椒江3天2晚</span></div>';
     html += '<div class="hint">说「看一下厦门」等查看具体线路附件</div>';
     html += '<div class="btn-group">';
-    html += '<button class="chat-btn primary" onclick="window.open(\'https://www.chyunfan.cn/attachments.html\', \'_blank\')">📋 查看所有线路附件</button>';
+    html += '<button class="chat-btn primary" onclick="window.open(\'' + APP_BASE + '/attachments.html\', \'_blank\')">📋 查看所有线路附件</button>';
     html += '</div>';
     html += '</div>';
     appendBotMsg(html);
@@ -845,7 +853,7 @@ function showAllRoutes() {
 // ========== 展示附件 ==========
 function showAttachment(route) {
     if (route) {
-        const pdfUrl = 'https://www.chyunfan.cn/Route/pdf/' + encodeURIComponent(route) + '.pdf';
+        const pdfUrl = APP_BASE + '/Route/pdf/' + encodeURIComponent(route) + '.pdf';
         const imgUrl = 'https://cyf-1435491785.cos.ap-guangzhou.myqcloud.com/Route/' + encodeURIComponent(route) + '/1.jpg';
         let html = '📎 <span class="highlight">' + route + '</span> 附件：';
         html += '<div class="btn-group">';
@@ -856,7 +864,7 @@ function showAttachment(route) {
     } else {
         let html = '📎 查看各线路附件：';
         html += '<div class="btn-group">';
-        html += '<button class="chat-btn primary" onclick="window.open(\'https://www.chyunfan.cn/attachments.html\', \'_blank\')">📋 查看所有线路附件</button>';
+        html += '<button class="chat-btn primary" onclick="window.open(\'' + APP_BASE + '/attachments.html\', \'_blank\')">📋 查看所有线路附件</button>';
         html += '</div>';
         appendBotMsg(html);
     }
